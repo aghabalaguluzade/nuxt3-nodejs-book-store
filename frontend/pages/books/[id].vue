@@ -1,0 +1,138 @@
+<script setup>
+import books from "~/db";
+
+const route = useRoute();
+const router = useRouter();
+
+const book = ref([]);
+
+onMounted(() => {
+  const bookId = route.params.id;
+  book.value = books.find(b => b.id === parseInt(bookId, 10));
+});
+
+const goToBackBooks = () => {
+  router.push('/books');  
+}
+
+</script>
+
+<template>
+  <section>
+    <Head>
+      <Title>{{ book.name }}</Title>
+      <Meta name="description" :content="book.description" />
+    </Head>
+    <div class="container">
+      <section-header :title="book.name" :text="book.author" />
+      <font-awesome icon="arrow-left" size="2xl" class="mb-2" style="cursor:pointer" @click="goToBackBooks" />
+      <div class="row mb-4">
+        <div class="col-lg-6">
+          <img class="card-img-top" src="../../public/images/b_detail.jpg" alt="card-img-top" />
+        </div>
+        <div class="col-lg-6 details-wrapper">
+          <p class="lead description">{{ book.description }}</p>
+          <div class="mb-4">
+            <div class="row border-bottom pb-2">
+              <div class="col-lg-6"><strong>Page</strong></div>
+              <div class="col-lg-6">{{ book.page }}</div>
+            </div>
+            <div class="row border-bottom pb-2">
+              <div class="col-lg-6"><strong>Category</strong></div>
+              <div class="col-lg-6">Fiction</div>
+            </div>
+            <div class="row border-bottom pb-2">
+              <div class="col-lg-6"><strong>Rating</strong></div>
+              <div class="col-lg-6">{{ book.rating }}</div>
+            </div>
+            <div class="row border-bottom pb-2">
+              <div class="col-lg-6"><strong>Upload Date</strong></div>
+              <div class="col-lg-6">{{ book.uploadDate }}</div>
+            </div>
+          </div>
+
+          <div class="comments-section">
+            <h3 class="diplay-6 mb-2">Comments</h3>
+            <div class="card mb-4">
+              <div class="card-body">
+                <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Repellat, suscipit.</p>
+                <div class="d-flex justify-content-between">
+                  <p class="fw-bold fst-italic">John Doe</p>
+                  <div class="d-flex align-items-center">
+                    <font-awesome :icon="['far', 'thumbs-up']" />
+                    <p class="ps-2 mb-0"><strong>8</strong></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card mb-4">
+              <div class="card-body">
+                <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Repellat, suscipit.</p>
+                <div class="d-flex justify-content-between">
+                  <p class="fw-bold fst-italic">John Doe</p>
+                  <div class="d-flex align-items-center">
+                    <font-awesome :icon="['far', 'thumbs-up']" />
+                    <p class="ps-2 mb-0"><strong>8</strong></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card mb-4">
+              <div class="card-body">
+                <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Repellat, suscipit.</p>
+                <div class="d-flex justify-content-between">
+                  <p class="fw-bold fst-italic">John Doe</p>
+                  <div class="d-flex align-items-center">
+                    <font-awesome :icon="['far', 'thumbs-up']" />
+                    <p class="ps-2 mb-0"><strong>8</strong></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card mb-4">
+              <div class="card-body">
+                <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Repellat, suscipit.</p>
+                <div class="d-flex justify-content-between">
+                  <p class="fw-bold fst-italic">John Doe</p>
+                  <div class="d-flex align-items-center">
+                    <font-awesome :icon="['far', 'thumbs-up']" />
+                    <p class="ps-2 mb-0"><strong>8</strong></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card mb-4">
+              <div class="card-body">
+                <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Repellat, suscipit.</p>
+                <div class="d-flex justify-content-between">
+                  <p class="fw-bold fst-italic">John Doe</p>
+                  <div class="d-flex align-items-center">
+                    <font-awesome :icon="['far', 'thumbs-up']" />
+                    <p class="ps-2 mb-0"><strong>8</strong></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<style scoped>
+.details-wrapper {
+  max-height: 740px;
+  display: flex;
+  flex-direction: column;
+}
+.comments-section {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+.description {
+  min-height: 150px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+</style>
