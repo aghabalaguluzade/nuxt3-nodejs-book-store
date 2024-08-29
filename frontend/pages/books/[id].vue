@@ -1,14 +1,23 @@
-<script setup>
-import books from "~/db";
+<script setup lang="ts">
+import type { Book } from '~/types';
 
 const route = useRoute();
 const router = useRouter();
 
-const book = ref([]);
+const book = ref<Book | null>(null);
+const bookId = route.params.id as string;
+const loading = ref(true);
 
-onMounted(() => {
-  const bookId = route.params.id;
-  book.value = books.find(b => b.id === parseInt(bookId, 10));
+const { data, error } = useFetch<Book>(`/api/books/${bookId}`);
+
+watchEffect(() => {
+  if (data.value) {
+    book.value = data.value;
+    loading.value = false;
+  }
+  if (error.value) {
+    console.error('Client-side error:', error.value.message);
+  }
 });
 
 const goToBackBooks = () => {
@@ -18,24 +27,24 @@ const goToBackBooks = () => {
 </script>
 
 <template>
-  <section>
+  <section class="container" v-if="! loading">
     <Head>
-      <Title>{{ book.name }}</Title>
-      <Meta name="description" :content="book.description" />
+      <Title>{{ book?.name }}</Title>
+      <Meta name="description" :content="book?.description" />
     </Head>
     <div class="container">
-      <section-header :title="book.name" :text="book.author" />
+      <section-header :title="book?.name" :text="book?.author" />
       <font-awesome icon="arrow-left" size="2xl" class="mb-2" style="cursor:pointer" @click="goToBackBooks" />
       <div class="row mb-4">
         <div class="col-lg-6">
           <img class="card-img-top" src="../../public/images/b_detail.jpg" alt="card-img-top" />
         </div>
         <div class="col-lg-6 details-wrapper">
-          <p class="lead description">{{ book.description }}</p>
+          <p class="lead description">{{ book?.description }}</p>
           <div class="mb-4">
             <div class="row border-bottom pb-2">
               <div class="col-lg-6"><strong>Page</strong></div>
-              <div class="col-lg-6">{{ book.page }}</div>
+              <div class="col-lg-6">{{ book?.page }}</div>
             </div>
             <div class="row border-bottom pb-2">
               <div class="col-lg-6"><strong>Category</strong></div>
@@ -43,11 +52,11 @@ const goToBackBooks = () => {
             </div>
             <div class="row border-bottom pb-2">
               <div class="col-lg-6"><strong>Rating</strong></div>
-              <div class="col-lg-6">{{ book.rating }}</div>
+              <div class="col-lg-6">{{ book?.rating }}</div>
             </div>
             <div class="row border-bottom pb-2">
               <div class="col-lg-6"><strong>Upload Date</strong></div>
-              <div class="col-lg-6">{{ book.uploadDate }}</div>
+              <div class="col-lg-6">{{ book?.createdAt }}</div>
             </div>
           </div>
 
@@ -118,6 +127,9 @@ const goToBackBooks = () => {
       </div>
     </div>
   </section>
+  <div class="container" v-else>
+    <p>Book details loading...</p>
+  </div>
 </template>
 
 <style scoped>

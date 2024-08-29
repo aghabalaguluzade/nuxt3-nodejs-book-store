@@ -28,7 +28,7 @@ const truncatedText = computed(() => {
 </script>
 
 <template>
-  <NuxtLink :to="`/books/${book.id}`">
+  <NuxtLink :to="`/books/${book._id}`">
     <div class="card border-0 shadow position-relative">
       <img src="../public/images//b1.jpg" class="card-img-top" alt="card-img-top" />
       <div class="card-body">
@@ -37,7 +37,7 @@ const truncatedText = computed(() => {
             {{ book.author }}
           </span>
         </div>
-        <h5 class="card-title mt-3 fw-semibold">{{ book.title }}</h5>
+        <h5 class="card-title mt-3 fw-semibold">{{ book.name }}</h5>
         <p class="card-text">{{ truncatedText }}</p>
         <div class="d-flex justify-content-between align-items-center">
           <p>Read More</p>
