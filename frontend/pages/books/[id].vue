@@ -6,7 +6,7 @@ const router = useRouter();
 
 const book = ref<Book | null>(null);
 const bookId = route.params.id as string;
-const loading = ref(true);
+const loading = ref<boolean>(true);
 
 const { data, error } = useFetch<Book>(`/api/books/${bookId}`);
 

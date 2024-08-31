@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
   modules: ['@pinia/nuxt', '@vesp/nuxt-fontawesome'],
-  css: ['assets/css/bootstrap.css', 'assets/css/style.css', 'assets/css/responsive.css', 'assets/css/font-awesome.min.css', 'assets/css/ion.rangeSlider.min.css'],
+  css: ['assets/css/style.css', 'bootstrap/dist/css/bootstrap.min.css'],
   app: {
     head: {
       meta: [
@@ -31,7 +31,7 @@ export default defineNuxtConfig({
       link: [
         {
           rel: 'icon', href: '/images/favicon.png', type: 'image/gif'
-        },
+        }
       ],
       script : [
         { src: 'js/jquery-3.4.1.min.js', tagPosition: 'bodyOpen' },

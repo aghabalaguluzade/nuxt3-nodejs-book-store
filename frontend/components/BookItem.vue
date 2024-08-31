@@ -6,15 +6,15 @@ const props = defineProps({
   }
 });
 
-const ratingBadgeClass = () => {
+const ratingBadgeClass = computed(() => {
   if(props.book.rating > 7) {
     return 'bg-success';
   }else if(props.book.rating > 4) {
     return 'bg-warning';
   }else {
-    return 'bg-return';
+    return 'bg-danger';
   }
-}
+});
 
 const truncatedText = computed(() => {
   if(props.book.description.length > 80) {
