@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <section class="info_section layout_padding2">
+  <!-- <section class="info_section layout_padding2">
     <div class="container">
       <div class="row">
         <div class="col-md-6 col-lg-3 info-col">
@@ -79,13 +79,10 @@
         </div>
       </div>
     </div>
-  </section>
-  <footer class="footer_section">
-    <div class="container">
-      <p>
-        © <span id="displayYear">2024</span> All Rights Reserved By
-        <a href="https://html.design/">Free Html Templates</a>
-      </p>
+  </section> -->
+  <footer class="text-center" style="background-color: var(--primary-color);">
+    <div class="text-white p-3">
+      &copy; 2023 No Copyright:
     </div>
   </footer>
 </template>

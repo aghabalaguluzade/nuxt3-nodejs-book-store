@@ -2,6 +2,6 @@
    <div>
       <nav-bar />
          <slot />
-      <!-- <the-footer-vue /> -->
+      <the-footer-vue />
    </div>
 </template>

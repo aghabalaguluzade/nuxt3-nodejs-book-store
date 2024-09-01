@@ -1,29 +1,26 @@
 <script setup lang="ts">
+import { useBookStore } from '~/store/bookStore';
 import type { Book } from '~/types';
 
 const route = useRoute();
 const router = useRouter();
+const storeBooks = useBookStore();
 
 const book = ref<Book | null>(null);
-const bookId = route.params.id as string;
 const loading = ref<boolean>(true);
 
-const { data, error } = useFetch<Book>(`/api/books/${bookId}`);
-
-watchEffect(() => {
-  if (data.value) {
-    book.value = data.value;
-    loading.value = false;
-  }
-  if (error.value) {
-    console.error('Client-side error:', error.value.message);
-  }
-});
+// Methods
+const selectedBook = () => {
+  const bookId = route.params.id;
+  book.value = storeBooks.selectedBook(bookId);
+  loading.value = false;
+};
 
 const goToBackBooks = () => {
   router.push('/books');  
 }
 
+selectedBook();
 </script>
 
 <template>

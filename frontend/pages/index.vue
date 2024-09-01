@@ -1,10 +1,13 @@
 <script lang="ts" setup>
-import Carousel from "~/components/widgets/Carousel.vue";
+import CarouselWidget from "~/components/widgets/CarouselWidget.vue";
+import { useBookStore } from "~/store/bookStore";
 import hero_1 from "/public/images/hero_1.jpg";
 import hero_2 from "/public/images/hero_2.jpg";
 import hero_3 from "/public/images/hero_3.jpg";
-import type { Book } from "~/types";
 
+const bookStore = useBookStore();
+
+// Carousel
 const carouselItems = [
   {
     imageUrl: hero_1,
@@ -29,52 +32,43 @@ const carouselItems = [
   },
 ];
 
-const books = ref<Book[]>([]);
-const selectedFilter = ref<'latest' | 'best'>('latest');
+const selectedFilter = ref<"latest" | "best">("latest");
 const openAccordionIndex = ref<number>(0);
 
-// Fetching data
-const { data, error } = await useFetch<Book[]>('/api/books');
-
-if (error.value) {
-  console.error('Error fetching books:', error.value.message);
-} else {
-  books.value = data.value || [];
-}
-
 // Methods
-const selectFilter = (filter: 'latest' | 'best') => {
+const selectFilter = (filter: "latest" | "best") => {
   selectedFilter.value = filter;
 };
 
-
 const toggleAccordion = (index: number) => {
-  if(openAccordionIndex.value === index) {
+  if (openAccordionIndex.value === index) {
     openAccordionIndex.value = -1;
-  }else {
+  } else {
     openAccordionIndex.value = index;
   }
-}
+};
 
 // Computed
 const filteredBooks = computed(() => {
-  const copiedBooks = [...books.value];
+  const copiedBooks = [...bookStore.books];
 
-  if(selectedFilter.value === 'latest') {
+  if (selectedFilter.value === "latest") {
     return copiedBooks
-      .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
       .slice(0, 5);
-  }else if(selectedFilter.value === 'best') {
-    return copiedBooks.sort((a, b) => b.rating - a.rating).slice(0, 4);
+  } else if (selectedFilter.value === "best") {
+    return copiedBooks.sort((a, b) => b.rating - a.rating).slice(0, 5);
   }
 });
-
 </script>
 
 <template>
   <div>
     <section class="mb-5">
-      <carousel :items="carouselItems" height="400px" />
+      <carousel-widget :items="carouselItems" height="400px" />
     </section>
     <section class="my-5">
       <div class="container">
@@ -104,6 +98,14 @@ const filteredBooks = computed(() => {
             </div>
           </div>
           <div class="col-md-8">
+            <div
+              v-if="bookStore.isLoading"
+              class="d-flex justify-content-center"
+            >
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
             <div class="accordion">
               <div
                 class="accordion-item"
@@ -150,10 +152,10 @@ const filteredBooks = computed(() => {
       </div>
     </section>
     <!-- <book-categories />
-    <book-about />
-    <book-customers />
-    <book-blog />
-    <book-contact-us /> -->
+      <book-about />
+      <book-customers />
+      <book-blog />
+      <book-contact-us /> -->
   </div>
 </template>
 

@@ -1,32 +1,24 @@
 <script setup lang="ts">
-import SectionHeader from '~/components/SectionHeader.vue';
-import BookList from '~/components/BookList.vue';
 import PaginationWidget from '~/components/widgets/PaginationWidget.vue';
-import type { Book } from '~/types';
+import { useBookStore } from '~/store/bookStore';
 
-const books = ref<Book[]>([]);
+const bookStore = useBookStore();
+
 const currentPage = ref<number>(1);
 const itemsPerPage = ref<number>(8);
 
-const totalPages = computed(() => Math.ceil(books.value.length / itemsPerPage.value));
-const paginatedBooks = computed(() => {
-  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
-  const endIndex = startIndex + itemsPerPage.value;
-  return books.value.slice(startIndex, endIndex);
-});
-
-// Fetching data
-const { data, error } = await useFetch<Book[]>('/api/books');
-
-if (error.value) {
-  console.error('Error fetching books:', error.value.message);
-} else {
-  books.value = data.value || [];
-}
-
+// Methods
 const updatePage = (page: number) => {
   currentPage.value = page;
 };
+
+// Computed
+const totalPages = computed(() => Math.ceil(bookStore.books.length / itemsPerPage.value));
+const paginatedBooks = computed(() => {
+  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
+  const endIndex = startIndex + itemsPerPage.value;
+  return bookStore.books.slice(startIndex, endIndex);
+});
 
 </script>
 
