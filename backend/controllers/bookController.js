@@ -1,5 +1,5 @@
 import Book from "../models/Books.js";
-import { isValidObjectId, findDocumentById } from "../utils/index.js";
+import { isValidObjectId, findDocumentById, checkValidationErrors } from "../utils/index.js";
 
 const index = async (req, res) => {
    try {
@@ -34,16 +34,7 @@ const store = async (req, res) => {
    } catch (error) {
       // Handle validation errors
       if (error.name === 'ValidationError') {
-         const validationErrorMessage = {}
-
-         for (let field in error.errors) {
-            validationErrorMessage[field] = error.errors[field].message;
-         }
-
-         return res
-            .status(400)
-            .json({ error: 'Validation error', validationErrorMessage });
-
+         if (checkValidationErrors(error, res)) return;
       } else {
          console.error("Error at creating book", error);
          return res
@@ -57,13 +48,13 @@ const show = async (req, res) => {
 
    const { id } = req.params;
 
-   if(isValidObjectId(id, res)) return;
+   if (isValidObjectId(id, res)) return;
 
    try {
 
       const book = await findDocumentById(Book, id, res);
 
-      if(! book) return;
+      if (!book) return;
 
       return res.status(200).json(book);
 
@@ -80,12 +71,12 @@ const update = async (req, res) => {
    const { id } = req.params;
    const { name, author, description, page, rating } = req.body;
 
-   if(isValidObjectId(id, res)) return;
+   if (isValidObjectId(id, res)) return;
 
    try {
       const book = await findDocumentById(Book, id, res);
 
-      if(! book) return;
+      if (!book) return;
 
       book.name = name || book.name;
       book.author = author || book.author;
@@ -109,12 +100,12 @@ const update = async (req, res) => {
 const destroy = async (req, res) => {
    const { id } = req.params;
 
-   if(isValidObjectId(id, res)) return;
+   if (isValidObjectId(id, res)) return;
 
    try {
       const book = await findDocumentById(Book, id, res);
 
-      if(! book) return;
+      if (!book) return;
 
       await book.deleteOne();
 

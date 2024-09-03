@@ -1,9 +1,24 @@
 <script setup>
-  const formData = reactive({
-    username: '',
-    email: '',
-    password: ''
-  })
+import { useAuthStore } from '~/store/authStore';
+
+const authStore = useAuthStore();
+
+const formData = reactive({
+  username: '',
+  email: '',
+  password: ''
+});
+const errors = ref('');
+
+const submitForm = async () => {
+  try {
+    await authStore.register(formData);
+    console.log('Register successful');
+  } catch (error) {
+    errors.value = error;
+    console.log(error);
+  }
+};
 </script>
 
 <template>
@@ -13,8 +28,15 @@
       <Meta name="description" content="Register" />
     </Head>
     <div class="container">
-      <div class="row justify-content-center mb-5">
-        <h1>Register</h1>
+      <div class="row justify-content-center mb-2 text-center">
+        <div class="col-md-6 col-8 mb-3">
+          <h1>Register</h1>
+        </div>
+      </div>
+      <div v-if="errors" class="row justify-content-center mb-4 mt-0"> 
+        <div class="col-md-6 col-8 bg-danger text-white text-center">
+          {{ errors?.data?.error }}
+        </div>
       </div>
       <form @submit.prevent="submitForm">
         <div class="row justify-content-center">
@@ -37,8 +59,7 @@
         <div class="row justify-content-center">
           <div class="col-md-6 col-8 mb-3">
             <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" v-model.trim="formData.password"
-              required>
+            <input type="password" class="form-control" id="password" name="password" v-model.trim="formData.password" required>
           </div>
         </div>
 

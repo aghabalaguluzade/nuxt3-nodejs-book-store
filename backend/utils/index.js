@@ -10,7 +10,7 @@ const findDocumentById = async (model, id, res) => {
    try {
       const document = await model.findById(id);
 
-      if(! document) {
+      if (!document) {
          res.status(404).json({ error: `The ${model.modelName} does not exist!` });
          return null;
       }
@@ -24,7 +24,20 @@ const findDocumentById = async (model, id, res) => {
    }
 };
 
+const checkValidationErrors = (error, res) => {
+   const validationErrorMessage = {}
+
+   for (let field in error.errors) {
+      validationErrorMessage[field] = error.errors[field].message;
+   }
+
+   return res
+      .status(400)
+      .json({ error: 'Validation error', validationErrorMessage });
+};
+
 export {
    isValidObjectId,
-   findDocumentById
+   findDocumentById,
+   checkValidationErrors
 }
