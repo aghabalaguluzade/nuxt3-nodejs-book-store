@@ -1,7 +1,23 @@
 <script lang="ts" setup>
-import type { NuxtLink } from '#build/components';
+import { useAuthStore } from '~/store/authStore';
 
-  const isLoggedIn = ref(false);
+const authStore = useAuthStore();
+
+// Computed
+const isLoggedIn = computed(() => authStore._isLoggedIn);
+
+// watch(() => isLoggedIn.value, (newValue, oldValue) => {
+//   console.log('Eski değer:', oldValue);
+//   console.log('Yeni değer:', newValue);
+// }, {
+//   immediate: true
+// });
+
+// Methods
+const logout = () => {
+  authStore.logout();
+};
+
 </script>
 
 <template>
@@ -15,17 +31,17 @@ import type { NuxtLink } from '#build/components';
         <li class="nav-item">
           <NuxtLink class="nav-link" :to="`/books`">Books</NuxtLink>
         </li>
-        <li class="nav-item">
+        <li v-if="isLoggedIn" class="nav-item">
           <NuxtLink class="nav-link" :to="`/dashboard`">Dashboard</NuxtLink>
         </li>
-        <li class="nav-item">
+        <li v-if="!isLoggedIn" class="nav-item">
           <NuxtLink class="nav-link" :to="`/login`">Login</NuxtLink>
         </li>
-        <li class="nav-item">
+        <li v-if="!isLoggedIn" class="nav-item">
           <NuxtLink class="nav-link" :to="`/register`">Register</NuxtLink>
         </li>
         <li v-if="isLoggedIn" class="nav-item">
-          <button class="nav-link">Logout</button>
+          <button class="nav-link" @click="logout">Logout</button>
         </li>
       </ul>
     </div>

@@ -3,8 +3,11 @@ import { defineStore } from 'pinia'
 export const useAuthStore = defineStore({
   id: 'AuthStore',
   state: () => ({
-    user: null
+    user: null, 
   }),
+  getters: {
+    _isLoggedIn: (state) => !!state.user
+  },
   actions: {
     async register(newUser) {
       try {
@@ -17,8 +20,6 @@ export const useAuthStore = defineStore({
         });
 
         this.user = data;
-        console.log(data);
-
       } catch (error) {
         throw error.data;
       }
@@ -33,12 +34,16 @@ export const useAuthStore = defineStore({
           }
         });
     
-        this.user = data;
-        console.log(data);
-    
+        this.user = data.user;
+        localStorage.setItem('user', JSON.stringify(data.user));
       } catch (error) {
         throw error.data;
       }
-    }
-  }
+    },
+    logout() {
+      this.user = null;
+      localStorage.removeItem('user');
+    },
+  },
+  persist: true
 });

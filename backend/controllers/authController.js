@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import { checkValidationErrors, isValidObjectId, findDocumentById } from "../utils/index.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const getAllUsers = async (req, res) => {
    const users = await User.find();
@@ -22,7 +23,7 @@ const register = async (req, res) => {
 
       res.status(201).json({ message: 'User created successfully', user: newUser });
 
-   } catch (error) {
+   } catch (error) { 
       // Handle validation errors
       if (error.name === 'ValidationError') {
          if (checkValidationErrors(error, res)) return;
@@ -49,7 +50,9 @@ const login = async (req, res) => {
          return res.status(401).json({ error: 'Password is not valid!' });
       }
 
-      return res.status(200).json({ message: 'User logged in successfully!', user });
+      const token = jwt.sign({ userId : user._id }, process.env.JWT_TOKEN_KEY, { expiresIn: process.env.EXPIRE_TIME });
+
+      return res.status(200).json({ message: 'User logged in successfully!', user, token });
    } catch (error) {
       console.error("Error at login user", error);
       return res.status(500).json({ error: 'Internal Server ERROR' });

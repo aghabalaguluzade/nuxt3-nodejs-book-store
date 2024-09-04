@@ -1,22 +1,61 @@
 <script setup>
-import { useAuthStore } from '~/store/authStore';
-
+import { useAuthStore } from "~/store/authStore";
+import { useToast } from "vue-toastification";
 const authStore = useAuthStore();
 
 const formData = reactive({
-  username: '',
-  email: '',
-  password: ''
+  username: "",
+  email: "",
+  password: "",
 });
-const errors = ref('');
+
+const showUsernameWarningMessage = ref(false);
+const showEmailWarningMessage = ref(false);
+const showPasswordWarningMessage = ref(false);
+const existingEmail = ref(null);
+const showGenericWarningMessage = ref(false);
+
+const isUsernameValid = computed(() => {
+  return formData.username.length >= 5 && formData.username.length <= 20;
+});
+
+const isEmailValid = computed(() => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+});
+
+const isPasswordValid = computed(() => {
+  return formData.password.length >= 4 && formData.password.length <= 10;
+});
+
+const isFormValid = computed(() => {
+  return isUsernameValid.value && isEmailValid.value && isPasswordValid.value;
+});
 
 const submitForm = async () => {
   try {
     await authStore.register(formData);
-    console.log('Register successful');
-  } catch (error) {
-    errors.value = error;
-    console.log(error);
+    const toast = useToast();
+    toast.success("You will be redirected to the login page", {
+      position: "top-right",
+      timeout: 3500,
+      closeButton: "button",
+      icon: true,
+      rtl: false,
+    });
+    setTimeout(() => {
+      this.$router.push("/login");
+    }, 4000);
+  } catch (errors) {
+    const { error } = errors;
+
+    if (error == "The Email is already exists!") {
+      existingEmail.value = formData.email;
+    } else {
+      showGenericWarningMessage.value = true;
+      formData.username = "";
+      formData.email = "";
+      formData.password = "";
+    }
   }
 };
 </script>
@@ -29,44 +68,126 @@ const submitForm = async () => {
     </Head>
     <div class="container">
       <div class="row justify-content-center mb-2 text-center">
-        <div class="col-md-6 col-8 mb-3">
-          <h1>Register</h1>
-        </div>
-      </div>
-      <div v-if="errors" class="row justify-content-center mb-4 mt-0"> 
-        <div class="col-md-6 col-8 bg-danger text-white text-center">
-          {{ errors?.data?.error }}
+        <div class="d-flex justify-content-center">
+          <h1 class="display-3">Register</h1>
         </div>
       </div>
       <form @submit.prevent="submitForm">
+        <div v-if="showGenericWarningMessage" class="text-center">
+          <span class="text-danger small"
+            >Something happened, please try again later!</span
+          >
+        </div>
         <div class="row justify-content-center">
           <!-- Username Field (Medium and Larger Screens) -->
           <div class="col-md-6 col-8 mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="username" name="username" v-model.trim="formData.username" required>
+            <label for="username" class="form-label"
+              >Username
+              <span class="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              class="form-control"
+              id="username"
+              name="username"
+              v-model.trim="formData.username"
+              autocomplete="off"
+              :class="{
+                'is-valid': isUsernameValid,
+                'is-invalid': !isUsernameValid && showUsernameWarningMessage,
+              }"
+              @focus="showUsernameWarningMessage = true"
+              @blur="showUsernameWarningMessage = false"
+              required
+            />
+            <span
+              v-if="showUsernameWarningMessage && !isUsernameValid"
+              class="text-danger small"
+              >Username must be between 5 and 20 characters!</span
+            >
           </div>
         </div>
 
         <div class="row justify-content-center">
           <!-- Email Field (Medium and Larger Screens) -->
           <div class="col-md-6 col-8 mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" name="email" v-model.trim="formData.email" required>
+            <label for="email" class="form-label"
+              >Email
+              <span class="text-danger">*</span>
+            </label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              name="email"
+              v-model.trim="formData.email"
+              autocomplete="off"
+              :class="{
+                'is-valid': isEmailValid,
+                'is-invalid':
+                  (!isEmailValid && showEmailWarningMessage) ||
+                  existingEmail === formData.email,
+              }"
+              @focus="showEmailWarningMessage = true"
+              @blur="showEmailWarningMessage = false"
+              required
+            />
+            <span
+              v-if="showEmailWarningMessage && !isEmailValid"
+              class="text-danger small"
+              >Please provide a valid email!</span
+            >
+            <span
+              v-if="existingEmail === formData.email"
+              class="text-danger small"
+            >
+              {{ `${existingEmail} is already exist!` }}</span
+            >
           </div>
         </div>
 
         <!-- Password Field -->
         <div class="row justify-content-center">
           <div class="col-md-6 col-8 mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" v-model.trim="formData.password" required>
+            <label for="password" class="form-label"
+              >Password
+              <span class="text-danger">*</span>
+            </label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              name="password"
+              v-model.trim="formData.password"
+              :class="{
+                'is-valid': isPasswordValid,
+                'is-invalid': !isPasswordValid && showPasswordWarningMessage,
+              }"
+              @focus="showPasswordWarningMessage = true"
+              @blur="showPasswordWarningMessage = false"
+              required
+            />
+            <span
+              v-if="showPasswordWarningMessage && !isPasswordValid"
+              class="text-danger small"
+              >Password must be between 4 and 10 characters!</span
+            >
           </div>
         </div>
 
         <!-- Submit Button -->
         <div class="row justify-content-center">
           <div class="col-md-6 col-8 mb-3">
-            <button type="submit" class="btn btn-primary w-100">Register</button>
+            <button
+              :disabled="!isFormValid"
+              type="submit"
+              class="btn btn-primary w-100"
+            >
+              Register
+            </button>
+            <span v-if="!isFormValid" class="text-danger small"
+              >* Please complete all of the required fields!</span
+            >
           </div>
         </div>
       </form>
