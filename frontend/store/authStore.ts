@@ -3,10 +3,11 @@ import { defineStore } from 'pinia'
 export const useAuthStore = defineStore({
   id: 'AuthStore',
   state: () => ({
-    user: null, 
+    user: null,
+    token: null,
   }),
   getters: {
-    _isLoggedIn: (state) => !!state.user
+    isLoggedIn: (state) => !!state.user,
   },
   actions: {
     async register(newUser) {
@@ -19,7 +20,12 @@ export const useAuthStore = defineStore({
           }
         });
 
-        this.user = data;
+        this.user = data.user;
+        this.token = data.token;
+        if (process.client) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('token', data.token);
+        }
       } catch (error) {
         throw error.data;
       }
@@ -35,15 +41,48 @@ export const useAuthStore = defineStore({
         });
     
         this.user = data.user;
-        localStorage.setItem('user', JSON.stringify(data.user));
+        this.token = data.token;
+        if (process.client) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('token', data.token);
+        }
       } catch (error) {
         throw error.data;
       }
     },
     logout() {
       this.user = null;
-      localStorage.removeItem('user');
+      this.token = null;
+      if (process.client) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    },
+    async initializeUser() {
+      if (process.client) {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          this.user = JSON.parse(storedUser);
+        }
+      }
+    },
+    async updateUserDetails(updatedUserData) {
+      try {
+        const data = await $fetch('http://localhost:5000/api/v1/user/updateUser', {
+          method: 'PUT',
+          body: JSON.stringify(updatedUserData),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.token}`
+          }
+        });
+
+        return data;
+
+      } catch (error) {
+        throw error.data;
+      }
     },
   },
-  persist: true
+  persist: true,
 });

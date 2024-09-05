@@ -8,7 +8,9 @@ export default defineEventHandler(async (event) => {
         'Content-Type': 'application/json'
       }
     });
+
     return user;
+    
   } catch (error) {
     throw error;
   }

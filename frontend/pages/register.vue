@@ -1,7 +1,9 @@
 <script setup>
 import { useAuthStore } from "~/store/authStore";
 import { useToast } from "vue-toastification";
+
 const authStore = useAuthStore();
+const router = useRouter();
 
 const formData = reactive({
   username: "",
@@ -43,8 +45,8 @@ const submitForm = async () => {
       rtl: false,
     });
     setTimeout(() => {
-      this.$router.push("/login");
-    }, 4000);
+      router.push("/login");
+    }, 1000);
   } catch (errors) {
     const { error } = errors;
 

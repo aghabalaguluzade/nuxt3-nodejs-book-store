@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 const authenticateUser = async (req, res, next) => {
-   const authHeader = req.headers;
+   const authHeader = req.headers.authorization;
 
    if(!authHeader) {
       return res.status(401).json({ message: 'Authorization header is missing!' });

@@ -20,9 +20,7 @@ const isEmailValid = computed(() => {
 });
 
 const isPasswordValid = computed(() => {
-  return (
-    formData.password.length >= 4 && formData.password.length <= 10
-  );
+  return formData.password.length >= 4 && formData.password.length <= 20;
 });
 
 const isFormValid = computed(() => {
@@ -40,8 +38,8 @@ const submitForm = async () => {
       rtl: false,
     });
     setTimeout(() => {
-      this.$router.push("/dashboard");
-    }, 4000);
+      router.push("/dashboard");
+    }, 1500);
   } catch (errors) {
     const { error } = errors;
 
@@ -77,7 +75,7 @@ const submitForm = async () => {
               id="email"
               name="email"
               v-model.trim="formData.email"
-              autocomplete="off"
+              autocomplete="on"
               :class="{
                 'is-valid': isEmailValid,
                 'is-invalid':

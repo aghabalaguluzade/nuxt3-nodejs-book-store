@@ -1,23 +1,17 @@
-<script lang="ts" setup>
-import { useAuthStore } from '~/store/authStore';
+<script setup>
+import { useAuthStore } from "~/store/authStore";
 
 const authStore = useAuthStore();
+const router = useRouter();
 
 // Computed
-const isLoggedIn = computed(() => authStore._isLoggedIn);
-
-// watch(() => isLoggedIn.value, (newValue, oldValue) => {
-//   console.log('Eski değer:', oldValue);
-//   console.log('Yeni değer:', newValue);
-// }, {
-//   immediate: true
-// });
+const isLoggedIn = computed(() => authStore.isLoggedIn);
 
 // Methods
 const logout = () => {
   authStore.logout();
+  router.push("/");
 };
-
 </script>
 
 <template>
@@ -26,19 +20,21 @@ const logout = () => {
       <NuxtLink class="navbar-brand" :to="`/`">Bostorek</NuxtLink>
       <ul class="navbar-nav">
         <li class="nav-item active">
-          <NuxtLink class="nav-link pl-lg-0" :to="`/`">Home <span class="sr-only">(current)</span></NuxtLink>
+          <NuxtLink class="nav-link pl-lg-0" :to="`/`"
+            >Home <span class="sr-only">(current)</span></NuxtLink
+          >
         </li>
         <li class="nav-item">
-          <NuxtLink class="nav-link" :to="`/books`">Books</NuxtLink>
+          <NuxtLink class="nav-link" to="/books">Books</NuxtLink>
         </li>
         <li v-if="isLoggedIn" class="nav-item">
-          <NuxtLink class="nav-link" :to="`/dashboard`">Dashboard</NuxtLink>
+          <NuxtLink class="nav-link" to="/dashboard">Dashboard</NuxtLink>
         </li>
         <li v-if="!isLoggedIn" class="nav-item">
-          <NuxtLink class="nav-link" :to="`/login`">Login</NuxtLink>
+          <NuxtLink class="nav-link" to="/login">Login</NuxtLink>
         </li>
         <li v-if="!isLoggedIn" class="nav-item">
-          <NuxtLink class="nav-link" :to="`/register`">Register</NuxtLink>
+          <NuxtLink class="nav-link" to="/register">Register</NuxtLink>
         </li>
         <li v-if="isLoggedIn" class="nav-item">
           <button class="nav-link" @click="logout">Logout</button>

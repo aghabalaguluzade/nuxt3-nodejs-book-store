@@ -3,12 +3,13 @@ import cors from "cors";
 import connectDatabase from "./config/db.js";
 import bookRoute from './routes/bookRoute.js';
 import authRoute from './routes/authRoute.js';
+import userRoute from './routes/userRoute.js';
 
 const app = express();
 const port = 5000;
 
 const corsPortOptions = {
-   origin: 'http://127.0.0.1:3000',
+   origin: 'http://localhost:3000',
    credentials: true
 };
 
@@ -19,6 +20,7 @@ app.use(express.json());
 // Routes configuration
 app.use('/api/v1/books', bookRoute);
 app.use('/api/v1/auth', authRoute);
+app.use('/api/v1/user', userRoute);
 
 try {
    //connection to the DB
