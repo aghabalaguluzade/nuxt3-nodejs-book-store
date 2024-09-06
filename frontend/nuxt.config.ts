@@ -43,8 +43,8 @@ export default defineNuxtConfig({
   },
   fontawesome: {
     icons: {
-      solid: ['arrow-left', 'thumbs-up'],
-      regular: ['thumbs-up'],
+      solid: ['arrow-left', 'thumbs-up', 'pen-to-square', 'trash'],
+      regular: ['thumbs-up', 'pen-to-square'],
       brands: [],
     },
   }
