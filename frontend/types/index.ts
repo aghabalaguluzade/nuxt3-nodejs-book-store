@@ -1,15 +1,31 @@
 export interface Book {
-   _id: number;
+   _id?: number;
    name: string;
    author: string;
    description: string;
-   page: number;
-   rating: number;
-   createdAt: number;
-   updatedAt: number;
+   page?: number | null;
+   rating?: number;
+   createdAt?: number;
+   updatedAt?: number;
+}
+
+export interface User {
+   username?: string;
+   email: string;
+   password: string;
+   admin?: boolean;
+   createdAt?: number;
+   updatedAt?: number;
 }
 
 export interface ErrorResponse {
-   statusCode: number;
-   message: string;
+   statusCode?: number;
+   message?: string;
+}
+
+export interface CarouselItem {
+  imageUrl: string;
+  subtitle: string;
+  title: string;
+  description: string;
 }

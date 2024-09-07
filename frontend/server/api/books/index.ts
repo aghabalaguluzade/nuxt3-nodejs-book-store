@@ -2,7 +2,8 @@ import { Book, ErrorResponse } from "~/types";
 
 export default defineEventHandler(async (event) => {
   try {
-    const books: Book[] = await $fetch('http://localhost:5000/api/v1/books');
+    const config = useRuntimeConfig();
+    const books: Book[] = await $fetch(`${config.public.apiBaseUrl}/books`);
 
     return books;
   } catch (error: any) {

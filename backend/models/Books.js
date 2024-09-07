@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 
 const { Schema } = mongoose;
 
@@ -22,9 +22,14 @@ const bookSchema = new Schema({
    },
    rating: {
       type: Number,
-      required: true,
+      required: false,
       min: 0,
       max: 10
+   },
+   uploader: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
    }
 },
    {

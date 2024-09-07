@@ -1,6 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { useAuthStore } from "~/store/authStore";
 
+// Use Nuxt App and Auth Store
 const authStore = useAuthStore();
 const router = useRouter();
 

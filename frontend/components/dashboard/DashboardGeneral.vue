@@ -1,17 +1,22 @@
-<script setup>
+<script setup lang="ts">
 import { useAuthStore } from "~/store/authStore";
+import { useUserStore } from "~/store/userStore";
 import { useToast } from "vue-toastification";
+import type { User } from "~/types";
 
+// Use Nuxt App and Stores
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const toast = useToast();
 const router = useRouter();
 
-const userInfo = reactive({
+// Reactive state for user info
+const userInfo = reactive<User>({
   username: "",
   email: "",
   password: "",
 });
-const editMode = ref(false);
+const editMode = ref<boolean>(false);
 
 // Methods
 const toggleEditMode = () => {
@@ -20,14 +25,16 @@ const toggleEditMode = () => {
 
 const cancelEditMode = () => {
   editMode.value = !editMode.value;
-  userInfo.username = authStore.user.username;
-  userInfo.email = authStore.user.email;
-  userInfo.password = "";
+  if (authStore.user) {
+    userInfo.username = authStore.user.username;
+    userInfo.email = authStore.user.email;
+    userInfo.password = "";
+  }
 };
 
 const saveUserInfo = async () => {
   try {
-    await authStore.updateUserDetails(userInfo);
+    await userStore.updateUserDetails(userInfo);
     toast.success("Please login with new details", {
       position: "top-right",
       timeout: 3500,
@@ -44,9 +51,12 @@ const saveUserInfo = async () => {
   }
 };
 
+// Lifecycle hook
 onMounted(() => {
-  userInfo.username = authStore.user.username;
-  userInfo.email = authStore.user.email;
+  if (authStore.user) {
+    userInfo.username = authStore.user.username;
+    userInfo.email = authStore.user.email;
+  }
 });
 </script>
 

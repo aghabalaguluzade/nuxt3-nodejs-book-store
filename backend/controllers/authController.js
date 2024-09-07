@@ -21,7 +21,7 @@ const register = async (req, res) => {
 
       const newUser = await User.create(req.body);
 
-      res.status(201).json({ message: 'User created successfully', user: newUser });
+      res.status(201).json({ message: 'User created successfully', user: newUser, token });
 
    } catch (error) { 
       // Handle validation errors

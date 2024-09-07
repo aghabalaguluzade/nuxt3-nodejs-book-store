@@ -1,26 +1,29 @@
-<script setup>
+<script setup lang="ts">
 import { useAuthStore } from "~/store/authStore";
 import { useToast } from "vue-toastification";
+import type { User } from "~/types";
 
+// Stores and Utilities
 const authStore = useAuthStore();
 const router = useRouter();
+const toast = useToast();
 
-const formData = reactive({
+// Form Data
+const formData: User = reactive({
   email: "",
   password: "",
 });
-const showEmailWarningMessage = ref(false);
-const showPasswordWarningMessage = ref(false);
-const notFoundEmail = ref(null);
-const isPasswordMatch = ref(true);
-const toast = useToast();
+const showEmailWarningMessage = ref<boolean>(false);
+const showPasswordWarningMessage = ref<boolean>(false);
+const notFoundEmail = ref<string | null>(null);
+const isPasswordMatch = ref<boolean>(true);
 
 const isEmailValid = computed(() => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 });
 
 const isPasswordValid = computed(() => {
-  return formData.password.length >= 4 && formData.password.length <= 20;
+  return formData.password.length >= 4 && formData.password.length <= 50;
 });
 
 const isFormValid = computed(() => {
@@ -40,12 +43,12 @@ const submitForm = async () => {
     setTimeout(() => {
       router.push("/dashboard");
     }, 1500);
-  } catch (errors) {
-    const { error } = errors;
+  } catch (error) {
+    const errorMessage = (error as { message?: string }).message;
 
-    if (error === "User not found!") {
-      notFoundEmail.value = this.formData.email;
-    } else if (error === "Your password is not true") {
+    if (errorMessage === "User not found!") {
+      notFoundEmail.value = formData.email;
+    } else if (errorMessage === "Your password is not true") {
       isPasswordMatch.value = false;
     }
   }
@@ -123,7 +126,7 @@ const submitForm = async () => {
             <span
               v-if="showPasswordWarningMessage && !isPasswordValid"
               class="text-danger small"
-              >Password must be between 4 and 10 characters!</span
+              >Password must be between 4 and 50 characters!</span
             >
             <span v-if="!isPasswordMatch" class="text-danger small"
               >Your password is not true!</span

@@ -1,24 +1,27 @@
-<script setup>
+<script setup lang="ts">
 import { useAuthStore } from "~/store/authStore";
 import { useToast } from "vue-toastification";
+import type { User } from "~/types";
 
+// Stores and Utilities
 const authStore = useAuthStore();
 const router = useRouter();
 
-const formData = reactive({
+// Form Data
+const formData = reactive<User>({
   username: "",
   email: "",
   password: "",
 });
 
-const showUsernameWarningMessage = ref(false);
-const showEmailWarningMessage = ref(false);
-const showPasswordWarningMessage = ref(false);
-const existingEmail = ref(null);
-const showGenericWarningMessage = ref(false);
+const showUsernameWarningMessage = ref<boolean>(false);
+const showEmailWarningMessage = ref<boolean>(false);
+const showPasswordWarningMessage = ref<boolean>(false);
+const showGenericWarningMessage = ref<boolean>(false);
+const existingEmail = ref<string | null>(null);
 
 const isUsernameValid = computed(() => {
-  return formData.username.length >= 5 && formData.username.length <= 20;
+  return formData.username?.length >= 5 && formData.username?.length <= 20;
 });
 
 const isEmailValid = computed(() => {
@@ -26,7 +29,7 @@ const isEmailValid = computed(() => {
 });
 
 const isPasswordValid = computed(() => {
-  return formData.password.length >= 4 && formData.password.length <= 10;
+  return formData.password.length >= 4 && formData.password.length <= 50;
 });
 
 const isFormValid = computed(() => {
@@ -48,9 +51,9 @@ const submitForm = async () => {
       router.push("/login");
     }, 1000);
   } catch (errors) {
-    const { error } = errors;
+    const errorMessage = (errors as { error?: string }).error;
 
-    if (error == "The Email is already exists!") {
+    if (errorMessage === "The Email is already exists!") {
       existingEmail.value = formData.email;
     } else {
       showGenericWarningMessage.value = true;
@@ -172,7 +175,7 @@ const submitForm = async () => {
             <span
               v-if="showPasswordWarningMessage && !isPasswordValid"
               class="text-danger small"
-              >Password must be between 4 and 10 characters!</span
+              >Password must be between 4 and 50 characters!</span
             >
           </div>
         </div>

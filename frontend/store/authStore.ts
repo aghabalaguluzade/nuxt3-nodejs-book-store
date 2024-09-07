@@ -1,18 +1,20 @@
 import { defineStore } from 'pinia'
+import type { User } from '~/types';
 
 export const useAuthStore = defineStore({
   id: 'AuthStore',
   state: () => ({
-    user: null,
-    token: null,
+    user: null as User | null,
+    token: null as string | null,
   }),
   getters: {
     isLoggedIn: (state) => !!state.user,
+    isToken: (state) => !!state.token,
   },
   actions: {
-    async register(newUser) {
+    async register(newUser: User) {
       try {
-        const data = await $fetch('/api/auth/register', {
+        const data = await $fetch<{ user: User; token: string }>('/api/auth/register', {
           method: 'POST',
           body: JSON.stringify(newUser),
           headers: {
@@ -30,9 +32,9 @@ export const useAuthStore = defineStore({
         throw error.data;
       }
     },
-    async login(newUser) {
+    async login(newUser: User) {
       try {
-        const data = await $fetch('/api/auth/login', {
+        const data = await $fetch<{ user: User; token: string }>('/api/auth/login', {
           method: 'POST',
           body: JSON.stringify(newUser),
           headers: {
@@ -64,23 +66,6 @@ export const useAuthStore = defineStore({
         if (storedUser) {
           this.user = JSON.parse(storedUser);
         }
-      }
-    },
-    async updateUserDetails(updatedUserData) {
-      try {
-        const data = await $fetch('http://localhost:5000/api/v1/user/updateUser', {
-          method: 'PUT',
-          body: JSON.stringify(updatedUserData),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.token}`
-          }
-        });
-
-        return data;
-
-      } catch (error) {
-        throw error.data;
       }
     },
   },

@@ -1,14 +1,68 @@
 <script setup lang="ts">
 import type { Modal } from "bootstrap";
+import { useToast } from "vue-toastification";
+import { useBookStore } from "~/store/bookStore";
+import type { Book } from "~/types";
+
+// Use Nuxt App and Book Store
 const { $bootstrap } = useNuxtApp();
+const bookStore = useBookStore();
+const toast = useToast();
 
-let modal: Modal;
+// Reactive state for the new book
+let newBook = reactive<Book>({
+  name: "",
+  author: "",
+  description: "",
+  page: null,
+});
 
-const addEditModal = ref(null);
+let modal: Modal | undefined
 
+// Methods
+const addBook = async () => {
+  try {
+    await bookStore.addBook(newBook);
+    modal.hide();
+    Object.assign(newBook, {
+      name: "",
+      author: "",
+      description: "",
+      page: null,
+    });
 
+    await bookStore.fetchBooksByUploader();
+
+    toast.success("New book added successfully", {
+      position: "top-right",
+      timeout: 1000,
+      closeButton: "button",
+      icon: true,
+      rtl: false,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// Computed property for user books
+const userBooks = computed(() => {
+  return bookStore.userUploadedBooks
+    .slice()
+    .sort((a: Book, b: Book) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+});
+
+// Lifecycle hook
 onMounted(() => {
-  modal = new $bootstrap.Modal(document.getElementById("modal-main"));
+  const modalElement = document.getElementById("modal-main");
+  if (modalElement) {
+    modal = new $bootstrap.Modal(modalElement);
+  }
+  bookStore.fetchBooksByUploader();
 });
 </script>
 
@@ -38,30 +92,31 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Gülün Adı</td>
-              <td>Umberto Eco</td>
-              <td style="max-width: 250px">
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                accusantium doloremque laudantium.
-              </td>
-              <td>217</td>
-              <td class="text-center">
-                <font-awesome
-                  :icon="['far', 'pen-to-square']"
-                  class="text-warning"
-                  style="cursor: pointer"
-                />
-              </td>
-              <td class="text-center">
-                <font-awesome
-                  :icon="['fas', 'trash']"
-                  class="text-danger"
-                  style="cursor: pointer"
-                  @click="deleteBook(book._id)"
-                />
-              </td>
-            </tr>
+            <TransitionGroup name="list">
+              <tr v-for="book in userBooks" :key="book._id">
+                <td>{{ book.name }}</td>
+                <td>{{ book.author }}</td>
+                <td style="max-width: 250px">
+                  {{ book.description }}
+                </td>
+                <td>{{ book.page }}</td>
+                <td class="text-center">
+                  <font-awesome
+                    :icon="['far', 'pen-to-square']"
+                    class="text-warning"
+                    style="cursor: pointer"
+                  />
+                </td>
+                <td class="text-center">
+                  <font-awesome
+                    :icon="['fas', 'trash']"
+                    class="text-danger"
+                    style="cursor: pointer"
+                    @click="deleteBook(book._id)"
+                  />
+                </td>
+              </tr>
+            </TransitionGroup>
           </tbody>
         </table>
       </div>
@@ -83,14 +138,15 @@ onMounted(() => {
           <div class="modal-body mx-5">
             <div class="col mb-3">
               <label for="title" class="form-label"
-                >Title
+                >Name
                 <span class="text-danger">*</span>
               </label>
               <input
                 type="text"
                 class="form-control"
-                id="title"
-                name="title"
+                id="name"
+                name="name"
+                v-model="newBook.name"
                 required
               />
             </div>
@@ -104,6 +160,7 @@ onMounted(() => {
                 class="form-control"
                 id="author"
                 name="author"
+                v-model="newBook.author"
                 required
               />
             </div>
@@ -118,6 +175,7 @@ onMounted(() => {
                 class="form-control"
                 cols="30"
                 rows="10"
+                v-model="newBook.description"
               ></textarea>
             </div>
             <div class="col mb-3">
@@ -130,6 +188,7 @@ onMounted(() => {
                 class="form-control"
                 id="numOfPages"
                 name="numOfPages"
+                v-model="newBook.page"
                 required
               />
             </div>
@@ -141,7 +200,9 @@ onMounted(() => {
               >
                 Close
               </button>
-              <button type="button" class="btn btn-primary">Save</button>
+              <button @click="addBook" type="button" class="btn btn-primary">
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -156,5 +217,16 @@ onMounted(() => {
   height: 48px;
   margin-right: 20px;
   min-width: 120px;
+}
+
+.list-enter-active,
+.list-leaave-active {
+  transition: all 2s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(300px);
 }
 </style>

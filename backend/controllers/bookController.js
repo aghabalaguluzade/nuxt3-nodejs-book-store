@@ -17,7 +17,8 @@ const index = async (req, res) => {
 const store = async (req, res) => {
    try {
 
-      const { name, author } = req.body;
+      const { name, author, description, page } = req.body;
+      const uploader = req.user._id;
 
       const existingBook = await Book.findOne({ name, author });
 
@@ -25,7 +26,13 @@ const store = async (req, res) => {
          return res.status(400).json({ error: 'A book with same name and author already exist!' });
       };
 
-      const newBook = await Book.create(req.body);
+      const newBook = await Book.create({
+         name,
+         author,
+         description,
+         page,
+         uploader
+      });
 
       return res.status(201).json({
          message: 'Book created successfully',
@@ -41,6 +48,25 @@ const store = async (req, res) => {
             .status(500)
             .json({ error: 'Internal Server ERROR' });
       }
+   }
+};
+
+const getBooksByUploader = async (req, res) => {
+   try {
+      const uploaderId = req.user._id;
+
+      console.log(req.user._id, '_id');
+      console.log(uploaderId, 'uploaderId');
+      
+
+      const books = await Book.find({ uploader : uploaderId });
+      
+      return res.status(200).json(books);
+
+   } catch (error) {
+      console.error('Error at getBooksByUploader', error);
+
+      return res.status(500).json({ error: 'Internal Server error' });
    }
 };
 
@@ -124,5 +150,6 @@ export {
    store,
    show,
    update,
-   destroy
+   destroy,
+   getBooksByUploader
 }

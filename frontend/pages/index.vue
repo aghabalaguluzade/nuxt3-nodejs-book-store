@@ -4,11 +4,13 @@ import { useBookStore } from "~/store/bookStore";
 import hero_1 from "/public/images/hero_1.jpg";
 import hero_2 from "/public/images/hero_2.jpg";
 import hero_3 from "/public/images/hero_3.jpg";
+import type { Book, CarouselItem } from "~/types";
 
+// Stores and Utilities
 const bookStore = useBookStore();
 
 // Carousel
-const carouselItems = [
+const carouselItems: CarouselItem[] = [
   {
     imageUrl: hero_1,
     subtitle: "Liberte",
@@ -49,19 +51,24 @@ const toggleAccordion = (index: number) => {
 };
 
 // Computed
-const filteredBooks = computed(() => {
+const filteredBooks = computed<Book[]>(() => {
   const copiedBooks = [...bookStore.books];
+
+  if (copiedBooks.length === 0) {
+    return [];
+  }
 
   if (selectedFilter.value === "latest") {
     return copiedBooks
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
       .slice(0, 5);
   } else if (selectedFilter.value === "best") {
-    return copiedBooks.sort((a, b) => b.rating - a.rating).slice(0, 5);
+    return copiedBooks
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .slice(0, 5);
   }
+
+  return [];
 });
 </script>
 

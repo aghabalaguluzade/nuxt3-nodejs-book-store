@@ -1,7 +1,9 @@
-<script setup>
-const props = defineProps({
+<script setup lang="ts">
+import { Book } from "~/types/index";
+
+const defaultProps = defineProps({
   books: {
-    type: Array,
+    type: Array as () => Book[],
     default: () => []
   }
 });

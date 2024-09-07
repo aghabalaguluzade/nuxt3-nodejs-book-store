@@ -7,7 +7,7 @@
         </h2>
       </div>
       <div class="row">
-        <book-blog-item v-for="blog in 2" />
+        <book-blog-item v-for="(blog, index) in 2" :key="index" />
       </div>
     </div>
   </section>

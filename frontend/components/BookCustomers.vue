@@ -8,7 +8,7 @@
         <hr>
       </div>
       <div class="row">
-        <book-customer v-for="customer in 3" />
+        <book-customer v-for="(customer,index) in 3" :key="index" />
       </div>
     </div>
   </section>
