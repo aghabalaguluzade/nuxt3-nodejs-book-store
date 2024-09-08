@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useToast } from 'vue-toastification';
 import type { User } from '~/types';
 
 export const useAuthStore = defineStore({
@@ -34,14 +35,14 @@ export const useAuthStore = defineStore({
     },
     async login(newUser: User) {
       try {
-        const data = await $fetch<{ user: User; token: string }>('/api/auth/login', {
+        const data = await $fetch<{ user: User; token: string, expiresIn: number }>('/api/auth/login', {
           method: 'POST',
           body: JSON.stringify(newUser),
           headers: {
             'Content-Type': 'application/json'
           }
         });
-    
+
         this.user = data.user;
         this.token = data.token;
         if (process.client) {

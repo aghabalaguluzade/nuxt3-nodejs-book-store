@@ -9,8 +9,9 @@ export const useUserStore = defineStore({
     async updateUserDetails(updatedUserData: Book) {
       const authStore = useAuthStore();
       const config = useRuntimeConfig();
+      const { $api } = useNuxtApp()
       try {
-        const data = await $fetch(`${config.public.apiBaseUrl}/user/updateUser`, {
+        const data = await $api(`${config.public.apiBaseUrl}/user/updateUser`, {
           method: 'PUT',
           body: JSON.stringify(updatedUserData),
           headers: {

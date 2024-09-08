@@ -15,45 +15,117 @@ let newBook = reactive<Book>({
   author: "",
   description: "",
   page: null,
+  editedBookId: null,
 });
+const modalTitle = ref<string>("Add Book");
 
-let modal: Modal | undefined
+let modal: Modal | undefined;
 
 // Methods
+// const saveBook = () => {
+//   modalTitle.value === 'Add Book' ? addBook() : editBook();
+// };
+
+const saveBook = () => {
+  if (modalTitle.value === "Add Book") {
+    addBook();
+  } else if (modalTitle.value === "Edit Book") {
+    editBook();
+  }
+};
+
+const openAddModal = () => {
+  modalTitle.value = "Add Book";
+  Object.assign(newBook, {
+    name: "",
+    author: "",
+    description: "",
+    page: null,
+    editedBook: null
+  });
+  modal?.show();
+};
+
+const openEditModal = (existingBook: Book) => {
+  modalTitle.value = "Edit Book";
+  Object.assign(newBook, {
+    ...existingBook,
+    editedBookId: existingBook._id,
+  });
+  modal?.show();
+};
+
 const addBook = async () => {
   try {
     await bookStore.addBook(newBook);
-    modal.hide();
+    modal?.hide();
     Object.assign(newBook, {
       name: "",
       author: "",
       description: "",
       page: null,
+      editedBookId: null,
     });
 
     await bookStore.fetchBooksByUploader();
 
-    toast.success("New book added successfully", {
+    showToast("New book added successfully", {
+      type: "success",
       position: "top-right",
       timeout: 1000,
-      closeButton: "button",
-      icon: true,
-      rtl: false,
     });
   } catch (error) {
     console.log(error);
   }
 };
 
+const editBook = async() => {
+  try {
+    await bookStore.editTheBook(newBook.editedBookId, newBook);
+    await bookStore.fetchBooksByUploader();
+
+    modal?.hide();
+    showToast('The book edited successfully', {
+      type: 'success',
+      timeout: 3000
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const showToast = (message: string, options: object) => {
+  toast(message, {
+    position: "top-right",
+    closeButton: "button",
+    icon: true,
+    rtl: false,
+    ...options,
+  });
+};
+
+const deleteBook = async (id: number, name: string) => {
+  try {
+    await bookStore.deleteTheBook(id);
+
+    await bookStore.fetchBooksByUploader();
+
+    showToast(`${name} deleted successfully`, {
+      type: "warning",
+      timeout: 3000,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 // Computed property for user books
 const userBooks = computed(() => {
-  return bookStore.userUploadedBooks
-    .slice()
-    .sort((a: Book, b: Book) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
-    });
+  return bookStore.userUploadedBooks.slice().sort((a: Book, b: Book) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
 });
 
 // Lifecycle hook
@@ -71,7 +143,7 @@ onMounted(() => {
     <!-- Button -->
     <div class="row mb-3">
       <div class="col text-end">
-        <button type="button" class="btn btn-primary" @click="modal.show()">
+        <button type="button" class="btn btn-primary" @click="openAddModal()">
           Add Book
         </button>
       </div>
@@ -91,33 +163,32 @@ onMounted(() => {
               <th class="text-center">Delete</th>
             </tr>
           </thead>
-          <tbody>
-            <TransitionGroup name="list">
-              <tr v-for="book in userBooks" :key="book._id">
-                <td>{{ book.name }}</td>
-                <td>{{ book.author }}</td>
-                <td style="max-width: 250px">
-                  {{ book.description }}
-                </td>
-                <td>{{ book.page }}</td>
-                <td class="text-center">
-                  <font-awesome
-                    :icon="['far', 'pen-to-square']"
-                    class="text-warning"
-                    style="cursor: pointer"
-                  />
-                </td>
-                <td class="text-center">
-                  <font-awesome
-                    :icon="['fas', 'trash']"
-                    class="text-danger"
-                    style="cursor: pointer"
-                    @click="deleteBook(book._id)"
-                  />
-                </td>
-              </tr>
-            </TransitionGroup>
-          </tbody>
+          <TransitionGroup name="list" tag="tbody">
+            <tr v-for="book in userBooks" :key="book._id">
+              <td>{{ book.name }}</td>
+              <td>{{ book.author }}</td>
+              <td style="max-width: 250px">
+                {{ book.description }}
+              </td>
+              <td>{{ book.page }}</td>
+              <td class="text-center">
+                <font-awesome
+                  :icon="['far', 'pen-to-square']"
+                  class="text-warning"
+                  style="cursor: pointer"
+                  @click="openEditModal(book)"
+                />
+              </td>
+              <td class="text-center">
+                <font-awesome
+                  :icon="['fas', 'trash']"
+                  class="text-danger"
+                  style="cursor: pointer"
+                  @click="deleteBook(book._id, book.name)"
+                />
+              </td>
+            </tr>
+          </TransitionGroup>
         </table>
       </div>
     </div>
@@ -127,7 +198,7 @@ onMounted(() => {
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="addModalLabel">Add Book</h5>
+            <h5 class="modal-title" id="addModalLabel">{{ modalTitle }}</h5>
             <button
               type="button"
               @click="modal.hide()"
@@ -200,7 +271,7 @@ onMounted(() => {
               >
                 Close
               </button>
-              <button @click="addBook" type="button" class="btn btn-primary">
+              <button @click="saveBook()" type="button" class="btn btn-primary">
                 Save
               </button>
             </div>
@@ -228,5 +299,8 @@ onMounted(() => {
 .list-leave-to {
   opacity: 0;
   transform: translateX(300px);
+}
+.list-leave-active {
+  position: absolute;
 }
 </style>

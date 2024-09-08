@@ -55,10 +55,6 @@ const getBooksByUploader = async (req, res) => {
    try {
       const uploaderId = req.user._id;
 
-      console.log(req.user._id, '_id');
-      console.log(uploaderId, 'uploaderId');
-      
-
       const books = await Book.find({ uploader : uploaderId });
       
       return res.status(200).json(books);
@@ -95,7 +91,7 @@ const show = async (req, res) => {
 
 const update = async (req, res) => {
    const { id } = req.params;
-   const { name, author, description, page, rating } = req.body;
+   const { name, author, description, page } = req.body;
 
    if (isValidObjectId(id, res)) return;
 
@@ -108,7 +104,6 @@ const update = async (req, res) => {
       book.author = author || book.author;
       book.description = description || book.description;
       book.page = page || book.page;
-      book.rating = rating || book.rating;
 
       await book.save(book);
 

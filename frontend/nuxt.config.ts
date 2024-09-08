@@ -7,6 +7,7 @@ export default defineNuxtConfig({
       apiBaseUrl: process.env.API_BASE_URL
     }
   },
+  plugins: ['~/plugins/axios.ts'],
   modules: ['@pinia/nuxt', '@vesp/nuxt-fontawesome', '@pinia-plugin-persistedstate/nuxt'],
   css: ['assets/css/style.css', 'bootstrap/dist/css/bootstrap.min.css'],
   app: {

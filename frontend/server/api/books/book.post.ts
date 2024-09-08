@@ -1,3 +1,4 @@
+import { useNuxtApp } from "nuxt/app";
 import { useAuthStore } from "~/store/authStore";
 
 export default defineEventHandler(async (event) => {

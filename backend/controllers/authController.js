@@ -50,9 +50,12 @@ const login = async (req, res) => {
          return res.status(401).json({ error: 'Password is not valid!' });
       }
 
-      const token = jwt.sign({ userId : user._id }, process.env.JWT_TOKEN_KEY, { expiresIn: process.env.EXPIRE_TIME });
+      // const expirationTime = 60 * 60 * 24 * 7;
+      const expirationTime = 10;
 
-      return res.status(200).json({ message: 'User logged in successfully!', user, token });
+      const token = jwt.sign({ userId : user._id }, process.env.JWT_TOKEN_KEY, { expiresIn: expirationTime });
+
+      return res.status(200).json({ message: 'User logged in successfully!', user, token, expiresIn: expirationTime });
    } catch (error) {
       console.error("Error at login user", error);
       return res.status(500).json({ error: 'Internal Server ERROR' });

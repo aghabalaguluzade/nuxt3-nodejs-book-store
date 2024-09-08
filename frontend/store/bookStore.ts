@@ -34,12 +34,13 @@ export const useBookStore = defineStore({
         }
       } catch (error) {
         console.error('Error fetching books:', error);
-      }finally {
+      } finally {
         this.isLoading = false;
       }
     },
     async addBook(newBook: Book) {
       const authStore = useAuthStore();
+      const config = useRuntimeConfig();
       try {
         const data: Book = await $fetch<Book>('/api/books/book', {
           method: 'POST',
@@ -57,14 +58,64 @@ export const useBookStore = defineStore({
     },
     async fetchBooksByUploader() {
       try {
-        const data = await $fetch<Book[]>('/api/books/uploader');
+        const authStore = useAuthStore();
+        const config = useRuntimeConfig();
+        // const data = await $fetch<Book[]>('/api/books/uploader');
+        const response = await $fetch(`${config.public.apiBaseUrl}/books/uploader`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authStore.token}`
+          },
+        });
 
-        this.userUploadedBooks = data || [];
+        this.userUploadedBooks = response || [];
+
+      } catch (error) {
+        throw error.data;
+      }
+    },
+    async deleteTheBook(id: number) {
+      const authStore = useAuthStore();
+      const config = useRuntimeConfig();
+
+      try {
+        await $fetch(`${config.public.apiBaseUrl}/books/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authStore.token}`
+          }
+        });
+        this.books = this.books.filter(book => book._id === id);
+      } catch (error) {
+        throw error.data;
+      }
+    },
+    async editTheBook(bookId: number, book: Book) {
+      const authStore = useAuthStore();
+      const config = useRuntimeConfig();
+
+      try {
+        const response = await $fetch(`${config.public.apiBaseUrl}/books/${bookId}`, {
+          method: 'PUT',
+          body: JSON.stringify(book),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authStore.token}`
+          }
+        });
+
+        const updatedBookData = response.book;
+
+        const bookIndex = this.books.findIndex((book) => book._id === bookId);
+        if (bookIndex !== -1) {
+          this.books.splice(bookIndex, 1, updatedBookData);
+        }
 
       } catch (error) {
         throw error.data;
       }
     }
   }
-
 })

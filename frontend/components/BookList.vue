@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Book } from "~/types/index";
+import type { Book } from "~/types/index";
 
 const defaultProps = defineProps({
   books: {

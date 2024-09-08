@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const activeTab = ref<string>("general");
+const activeTab = ref<string>("books");
 </script>
 
 <template>
