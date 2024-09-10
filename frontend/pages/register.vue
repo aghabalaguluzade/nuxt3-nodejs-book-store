@@ -9,9 +9,9 @@ const router = useRouter();
 
 // Form Data
 const formData = reactive<User>({
-  username: "",
-  email: "",
-  password: "",
+  username: '',
+  email: '',
+  password: '',
 });
 
 const showUsernameWarningMessage = ref<boolean>(false);

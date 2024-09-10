@@ -50,8 +50,7 @@ const login = async (req, res) => {
          return res.status(401).json({ error: 'Password is not valid!' });
       }
 
-      // const expirationTime = 60 * 60 * 24 * 7;
-      const expirationTime = 10;
+      const expirationTime = 60 * 60 * 24 * 7;
 
       const token = jwt.sign({ userId : user._id }, process.env.JWT_TOKEN_KEY, { expiresIn: expirationTime });
 

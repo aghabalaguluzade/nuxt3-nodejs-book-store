@@ -7,6 +7,7 @@ export interface Book {
    rating?: number;
    createdAt?: number;
    updatedAt?: number;
+   editedBookId?: number | null;
 }
 
 export interface User {
