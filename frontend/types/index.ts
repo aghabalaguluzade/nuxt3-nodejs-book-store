@@ -11,6 +11,7 @@ export interface Book {
 }
 
 export interface User {
+   _id?: number;
    username?: string;
    email: string;
    password: string;
@@ -29,4 +30,22 @@ export interface CarouselItem {
   subtitle: string;
   title: string;
   description: string;
+}
+
+export interface Comment {
+   _id?: number;
+   content: string;
+   book: number;
+   postedBy: number;
+   createdAt?: string;
+   updatedAt?: string;
+}
+
+export interface ApiResponse<T> {
+   comments: T[];
+ }
+
+export interface commentsForBook {
+   comment: Comment;
+   postedBy: User;
 }

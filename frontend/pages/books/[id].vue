@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { useBookStore } from "~/store/bookStore";
+import { useAuthStore } from "~/store/authStore";
+import { useCommentsStore } from "~/store/commentsStore";
 import type { Book } from "~/types";
 
 const route = useRoute();
 const router = useRouter();
 const storeBooks = useBookStore();
+const authStore = useAuthStore();
+const commentsStore = useCommentsStore();
 
 const book = ref<Book>({
   name: "",
@@ -14,6 +18,7 @@ const book = ref<Book>({
   updatedAt: null,
 });
 const loading = ref<boolean>(true);
+const commentContent = ref<string>("");
 
 // Methods
 const selectedBook = () => {
@@ -22,11 +27,37 @@ const selectedBook = () => {
   loading.value = false;
 };
 
+const addComment = async () => {
+  try {
+    const bookId = route.params.id as string;
+    const content = commentContent.value;
+    const userId = authStore.user._id;
+
+    await commentsStore.addNewComment({
+      bookId,
+      content,
+      userId,
+    });
+
+    await commentsStore.fetchCommentsForBook(route.params.id);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const goToBackBooks = () => {
   router.push("/books");
 };
 
-selectedBook();
+// Computed
+const isLoggedIn = computed(() => authStore.isLoggedIn);
+const commentsForBook = computed(() => commentsStore.commentsForBook);
+
+onMounted(() => {
+  selectedBook();
+  commentsStore.fetchCommentsForBook(route.params.id);
+});
 </script>
 
 <template>
@@ -37,7 +68,7 @@ selectedBook();
     </Head>
     <SectionHeader :title="book.name" :text="book.author" />
     <div class="d-flex">
-      <font-awesome-icon
+      <font-awesome
         icon="arrow-left"
         size="xl"
         class="mb-2"
@@ -48,7 +79,7 @@ selectedBook();
     <div class="row">
       <div class="col-md-6">
         <div class="image-box">
-          <img class="img-fluid" src="../../template/images/b_detail.jpg" />
+          <img class="img-fluid" src="../../public/images/b_detail.jpg" />
         </div>
       </div>
       <div class="col-md-6">
@@ -99,26 +130,35 @@ selectedBook();
         </div>
       </div>
     </div>
-    <hr />
+    <hr v-if="isLoggedIn" />
     <div class="row mt-3">
       <div class="col-md-12">
         <div class="box">
-          <h3 style="color: var(--primary-color)">Comment The Book</h3>
-          <form>
-            <!-- Comment Text Area -->
-            <div class="mb-3">
-              <textarea
-                id="comment"
-                class="form-control"
-                rows="4"
-                placeholder="Enter your comment"
-                required
-              ></textarea>
-            </div>
+          <div v-if="isLoggedIn">
+            <h3 style="color: var(--primary-color)">Comment The Book</h3>
+            <form @submit.prevent="addComment">
+              <!-- Comment Text Area -->
+              <div class="mb-3">
+                <textarea
+                  id="comment"
+                  class="form-control"
+                  rows="4"
+                  placeholder="Enter your comment"
+                  required
+                  v-model="commentContent"
+                ></textarea>
+              </div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary">Comment</button>
-          </form>
+              <!-- Submit Button -->
+              <button type="submit" class="btn btn-primary">Comment</button>
+            </form>
+          </div>
+
+          <NuxtLink v-else to="/login">
+            <p style="color: var(--secondary-color)">
+              Log in to leave a comment
+            </p>
+          </NuxtLink>
         </div>
       </div>
     </div>
@@ -128,57 +168,60 @@ selectedBook();
         <div class="box">
           <h3 style="color: var(--primary-color)">Comments</h3>
           <div>
-            <div class="card mb-4">
+            <div
+              class="card mb-4"
+              v-for="comment in commentsForBook"
+              :key="comment._id"
+            >
               <div class="card-body">
                 <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  {{ comment.content }}
                 </p>
 
                 <div class="d-flex justify-content-between">
                   <div class="d-flex flex-row align-items-center">
-                    <p class="small mb-0 ms-2">Username</p>
+                    <p class="small mb-0 ms-2">
+                      {{ comment.postedBy.username }}
+                    </p>
                   </div>
                   <div
                     class="d-flex flex-row align-items-center"
                     style="gap: 10px"
                   >
                     <p class="small text-muted mb-0">Upvote?</p>
-                    <font-awesome-icon :icon="['far', 'thumbs-up']" />
+                    <font-awesome :icon="['far', 'thumbs-up']" />
                     <p class="small text-muted mb-0">3</p>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="card mb-4">
-              <div class="card-body">
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                </p>
-
-                <div class="d-flex justify-content-between">
-                  <div class="d-flex flex-row align-items-center">
-                    <p class="small mb-0 ms-2">Username</p>
-                  </div>
-                  <div
-                    class="d-flex flex-row align-items-center"
-                    style="gap: 10px"
-                  >
-                    <p class="small mb-0">Upvoted</p>
-                    <font-awesome-icon
-                      :icon="['fas', 'thumbs-up']"
-                      style="color: var(--secondary-color)"
-                    />
-                    <p class="small text-muted mb-0">4</p>
+            <!--             <div class="card mb-4">
+                <div class="card-body">
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  </p>
+  
+                  <div class="d-flex justify-content-between">
+                    <div class="d-flex flex-row align-items-center">
+                      <p class="small mb-0 ms-2">Username</p>
+                    </div>
+                    <div
+                      class="d-flex flex-row align-items-center"
+                      style="gap: 10px"
+                    >
+                      <p class="small mb-0">Upvoted</p>
+                      <font-awesome
+                        :icon="['fas', 'thumbs-up']"
+                        style="color: var(--secondary-color)"
+                      />
+                      <p class="small text-muted mb-0">4</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </div> -->
           </div>
         </div>
       </div>
