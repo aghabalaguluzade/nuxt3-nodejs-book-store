@@ -40,7 +40,6 @@ export const useBookStore = defineStore({
     },
     async addBook(newBook: Book) {
       const authStore = useAuthStore();
-      const config = useRuntimeConfig();
       try {
         const data: Book = await $fetch<Book>('/api/books/book', {
           method: 'POST',
@@ -52,7 +51,7 @@ export const useBookStore = defineStore({
         });
 
         this.books.push(data);
-      } catch (error) {
+      } catch (error: any) {
         throw error.data;
       }
     },
@@ -61,7 +60,7 @@ export const useBookStore = defineStore({
         const authStore = useAuthStore();
         const config = useRuntimeConfig();
         // const data = await $fetch<Book[]>('/api/books/uploader');
-        const response = await $fetch(`${config.public.apiBaseUrl}/books/uploader`, {
+        const response = await $fetch<Book[]>(`${config.public.apiBaseUrl}/books/uploader`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -71,7 +70,7 @@ export const useBookStore = defineStore({
 
         this.userUploadedBooks = response || [];
 
-      } catch (error) {
+      } catch (error: any) {
         throw error.data;
       }
     },
@@ -88,7 +87,7 @@ export const useBookStore = defineStore({
           }
         });
         this.books = this.books.filter(book => book._id === id);
-      } catch (error) {
+      } catch (error: any) {
         throw error.data;
       }
     },
@@ -97,7 +96,7 @@ export const useBookStore = defineStore({
       const config = useRuntimeConfig();
 
       try {
-        const response = await $fetch(`${config.public.apiBaseUrl}/books/${bookId}`, {
+        const response = await $fetch<Book>(`${config.public.apiBaseUrl}/books/${bookId}`, {
           method: 'PUT',
           body: JSON.stringify(book),
           headers: {
@@ -113,7 +112,7 @@ export const useBookStore = defineStore({
           this.books.splice(bookIndex, 1, updatedBookData);
         }
 
-      } catch (error) {
+      } catch (error: any) {
         throw error.data;
       }
     }

@@ -1,4 +1,5 @@
 export interface Book {
+   book: any;
    _id?: number;
    name: string;
    author: string;
@@ -26,24 +27,24 @@ export interface ErrorResponse {
 }
 
 export interface CarouselItem {
-  imageUrl: string;
-  subtitle: string;
-  title: string;
-  description: string;
+   imageUrl: string;
+   subtitle: string;
+   title: string;
+   description: string;
 }
 
 export interface Comment {
    _id?: number;
    content: string;
    book: number;
-   postedBy: number;
+   postedBy: User;
    createdAt?: string;
    updatedAt?: string;
 }
 
 export interface ApiResponse<T> {
    comments: T[];
- }
+}
 
 export interface commentsForBook {
    comment: Comment;

@@ -46,6 +46,20 @@ const addComment = async () => {
   }
 };
 
+const scrollToComment = () => {
+  nextTick(() => {
+    const commentId = route.query.comment as string;
+    if (commentId) {
+      const element = document.getElementById(`comment-${commentId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        console.error(`Element with id comment-${commentId} not found`);
+      }
+    }
+  });
+};
+
 const goToBackBooks = () => {
   router.push("/books");
 };
@@ -58,6 +72,13 @@ onMounted(() => {
   selectedBook();
   commentsStore.fetchCommentsForBook(route.params.id);
 });
+
+// Watcher
+watch(commentsForBook, (newComments: any) => {
+  if (newComments.length) {
+    scrollToComment();
+  }
+}, { immediate: true });
 </script>
 
 <template>
@@ -173,7 +194,7 @@ onMounted(() => {
               v-for="comment in commentsForBook"
               :key="comment._id"
             >
-              <div class="card-body">
+              <div class="card-body" :id="`comment-${comment._id}`">
                 <p>
                   {{ comment.content }}
                 </p>
@@ -195,33 +216,6 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <!--             <div class="card mb-4">
-                <div class="card-body">
-                  <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  </p>
-  
-                  <div class="d-flex justify-content-between">
-                    <div class="d-flex flex-row align-items-center">
-                      <p class="small mb-0 ms-2">Username</p>
-                    </div>
-                    <div
-                      class="d-flex flex-row align-items-center"
-                      style="gap: 10px"
-                    >
-                      <p class="small mb-0">Upvoted</p>
-                      <font-awesome
-                        :icon="['fas', 'thumbs-up']"
-                        style="color: var(--secondary-color)"
-                      />
-                      <p class="small text-muted mb-0">4</p>
-                    </div>
-                  </div>
-                </div>
-              </div> -->
           </div>
         </div>
       </div>

@@ -22,7 +22,7 @@ export const useUserStore = defineStore({
 
         return data;
 
-      } catch (error) {
+      } catch (error: any) {
         throw error.data;
       }
     },

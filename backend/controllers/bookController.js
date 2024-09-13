@@ -110,7 +110,7 @@ const update = async (req, res) => {
       res.status(200).json({ message: 'Book saved successfully', book: book });
 
    } catch (error) {
-      console.error("Error at creating book", error);
+      console.error("Error at updating book", error);
       return res
          .status(500)
          .json({ error: 'Internal Server ERROR' });

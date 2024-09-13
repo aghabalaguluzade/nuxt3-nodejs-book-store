@@ -7,6 +7,14 @@ router
   .route('/')
   .post(authMiddleware.authenticateUser, commentController.store);
 
+router
+  .route('/:id')
+  .put(authMiddleware.authenticateUser, commentController.update);
+
 router.route('/book/:id').get(commentController.getCommentsForBook);
+
+router
+  .route('/user/:id')
+  .get(authMiddleware.authenticateUser, commentController.getCommentsByUser);
 
 export default router;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const activeTab = ref<string>("books");
+const activeTab = ref<string>("comments");
 </script>
 
 <template>
@@ -36,6 +36,25 @@ const activeTab = ref<string>("books");
             Books
           </button>
         </li>
+        <li
+          class="nav-item"
+          role="presentation"
+          @click="activeTab = 'comments'"
+        >
+          <button
+            class="nav-link"
+            :class="{ active: activeTab === 'comments' }"
+            id="comments-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#comments-tab-pane"
+            type="button"
+            role="tab"
+            aria-controls="comments-tab-pane"
+            aria-selected="false"
+          >
+            Comments
+          </button>
+        </li>
       </ul>
       <div class="tab-content py-4" id="dashboardContent">
         <div
@@ -57,6 +76,16 @@ const activeTab = ref<string>("books");
           tabindex="0"
         >
           <dashboard-books />
+        </div>
+        <div
+          class="tab-pane fade"
+          :class="{ 'active show': activeTab === 'comments' }"
+          id="comments-tab-pane"
+          role="tabpanel"
+          aria-labelledby="comments-tab"
+          tabindex="0"
+        >
+          <DashboardComments />
         </div>
       </div>
     </div>

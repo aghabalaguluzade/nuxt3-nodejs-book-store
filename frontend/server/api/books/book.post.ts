@@ -1,4 +1,3 @@
-import { useNuxtApp } from "nuxt/app";
 import { useAuthStore } from "~/store/authStore";
 
 export default defineEventHandler(async (event) => {
@@ -18,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
     return response;
     
-  } catch (error) {
+  } catch (error: any) {
     throw error.data;
   }
 })

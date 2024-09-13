@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { useToast } from 'vue-toastification';
 import type { User } from '~/types';
 
 export const useAuthStore = defineStore({
@@ -29,7 +28,7 @@ export const useAuthStore = defineStore({
           localStorage.setItem('user', JSON.stringify(data.user));
           localStorage.setItem('token', data.token);
         }
-      } catch (error) {
+      } catch (error: any) {
         throw error.data;
       }
     },
@@ -49,7 +48,7 @@ export const useAuthStore = defineStore({
           localStorage.setItem('user', JSON.stringify(data.user));
           localStorage.setItem('token', data.token);
         }
-      } catch (error) {
+      } catch (error: any) {
         throw error.data;
       }
     },

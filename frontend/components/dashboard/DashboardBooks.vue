@@ -7,8 +7,8 @@ import type { Book } from "~/types";
 
 // Use Nuxt App and Book Store
 const { $bootstrap } = useNuxtApp();
-const bookStore = useBookStore();
 const toast = useToast();
+const bookStore = useBookStore();
 
 // Reactive state for the new book
 let newBook = reactive<Book>({
