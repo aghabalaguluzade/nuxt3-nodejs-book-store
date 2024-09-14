@@ -24,7 +24,7 @@ export const useCommentsStore = defineStore({
         throw error.data;
       }
     },
-    async updateComment(commentId: number, comment: string) {
+    async updateComment(commentId: string, comment: string) {
       const config = useRuntimeConfig();
       const { $api } = useNuxtApp();
       try {
@@ -49,7 +49,7 @@ export const useCommentsStore = defineStore({
         const config = useRuntimeConfig();
         const response = await $fetch<ApiResponse<commentsForBook>>(`${config.public.apiBaseUrl}/comments/book/${bookId}`);
 
-        this.commentsForBook = response.comments;
+        this.commentsForBook = response.comments ?? [];
       } catch (error: any) {
         throw error.data;
       }

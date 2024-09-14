@@ -2,6 +2,7 @@
 import { useBookStore } from "~/store/bookStore";
 import { useAuthStore } from "~/store/authStore";
 import { useCommentsStore } from "~/store/commentsStore";
+import { useRatingStore } from "~/store/ratingStore";
 import type { Book } from "~/types";
 
 const route = useRoute();
@@ -9,6 +10,7 @@ const router = useRouter();
 const storeBooks = useBookStore();
 const authStore = useAuthStore();
 const commentsStore = useCommentsStore();
+const ratingStore = useRatingStore();
 
 const book = ref<Book>({
   name: "",
@@ -19,12 +21,18 @@ const book = ref<Book>({
 });
 const loading = ref<boolean>(true);
 const commentContent = ref<string>("");
+const userRate = ref<number | null>(null);
 
 // Methods
 const selectedBook = () => {
   const bookId = route.params.id as string;
-  book.value = storeBooks.selectedBook(bookId);
-  loading.value = false;
+  const bookData = storeBooks.selectedBook(bookId);
+  if (bookData) {
+    book.value = bookData;
+    loading.value = false;
+  } else {
+    console.error('Book not found');
+  }
 };
 
 const addComment = async () => {
@@ -41,10 +49,54 @@ const addComment = async () => {
 
     await commentsStore.fetchCommentsForBook(route.params.id);
 
+    commentContent.value = null;
+
   } catch (error) {
     console.log(error);
   }
 };
+
+const addRate = async () => {
+  try {
+    const bookId = route.params.id;
+    const rate = userRate.value;
+    const userId = authStore.user._id;
+
+    await ratingStore.addNewRate({
+      bookId,
+      userId,
+      rate
+    });
+
+    userRate.value = null;
+
+    await ratingStore.fetchRatingsForBook(route.params.id as string);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const averageRating = computed(() => {
+  if(ratingStore.ratingsForBook.length > 0) {
+    const totalRating = ratingStore.ratingsForBook.reduce((sum: any, rating: { rate: any; }) => sum + rating.rate, 0);
+
+    return (totalRating / ratingStore.ratingsForBook.length).toFixed(2);
+  }
+});
+
+const ratingCount = computed(() => ratingStore.ratingsForBook ? ratingStore.ratingsForBook.length : 0);
+
+const isUserAlreadyRated = computed(() => {
+  if(authStore.user) return false;
+
+  return ratingStore.ratingsForBook.some((rating) => rating.ratedBy._id == authStore.user);
+});
+
+const userRating = computed(() => {
+  const userRatingObject = ratingStore.ratingsForBook.find((rating) => rating.ratedBy._id === authStore.user) 
+
+  return userRatingObject ? userRatingObject : null;
+});
 
 const scrollToComment = () => {
   nextTick(() => {
@@ -71,6 +123,7 @@ const commentsForBook = computed(() => commentsStore.commentsForBook);
 onMounted(() => {
   selectedBook();
   commentsStore.fetchCommentsForBook(route.params.id);
+  ratingStore.fetchRatingsForBook(route.params.id);
 });
 
 // Watcher
@@ -117,7 +170,9 @@ watch(commentsForBook, (newComments: any) => {
             </div>
             <div class="row border-bottom pb-2">
               <div class="col-lg-6"><strong>Rating</strong></div>
-              <div class="col-lg-6">8.2 - (23 rates)</div>
+              <div class="col-lg-6">
+                {{ averageRating }} - ({{ ratingCount }} rates)
+              </div>
             </div>
             <div class="row border-bottom pb-2">
               <div class="col-lg-6"><strong>Upload Date</strong></div>
@@ -130,24 +185,38 @@ watch(commentsForBook, (newComments: any) => {
     <div class="row mt-3">
       <div class="col-md-6">
         <div class="box">
-          <h3 style="color: var(--primary-color)">Rate The Book</h3>
-          <form>
-            <!-- Rating Input -->
-            <div class="mb-3">
-              <input
-                type="number"
-                id="rating"
-                class="form-control w-50"
-                min="1"
-                max="10"
-                placeholder="Rate (1-10)"
-                required
-              />
+          <div v-if="isLoggedIn">
+            <div v-if="!isUserAlreadyRated">
+              <h3 style="color: var(--primary-color)">Rate The Book</h3>
+              <form @submit.prevent="addRate">
+                <!-- Rating Input -->
+                <div class="mb-3">
+                  <input
+                    type="number"
+                    id="rating"
+                    class="form-control w-50"
+                    min="1"
+                    max="10"
+                    placeholder="Rate (1-10)"
+                    required
+                    v-model="userRate"
+                  />
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary">Rate</button>
+              </form>
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary">Rate</button>
-          </form>
+            <div v-else>Your Rate: {{ userRating }}</div>
+          </div>
+
+          <NuxtLink v-else to="/login">
+            <p style="color: var(--secondary-color)">
+              Log in to leave a rate for the book
+            </p>
+          </NuxtLink>
         </div>
       </div>
     </div>

@@ -10,8 +10,8 @@ export const useBookStore = defineStore({
     userUploadedBooks: [] as Book[],
   }),
   getters: {
-    selectedBook: (state): any => {
-      return (id: number): Book | undefined => state.books.find((book) => book._id === id);
+    selectedBook: (state) => {
+      return (id: string): Book | undefined => state.books.find((book) => book._id === id);
     }
   },
   actions: {
@@ -74,7 +74,7 @@ export const useBookStore = defineStore({
         throw error.data;
       }
     },
-    async deleteTheBook(id: number) {
+    async deleteTheBook(id: string) {
       const authStore = useAuthStore();
       const config = useRuntimeConfig();
 
@@ -91,7 +91,7 @@ export const useBookStore = defineStore({
         throw error.data;
       }
     },
-    async editTheBook(bookId: number, book: Book) {
+    async editTheBook(bookId: string, book: Book) {
       const authStore = useAuthStore();
       const config = useRuntimeConfig();
 

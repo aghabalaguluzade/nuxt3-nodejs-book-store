@@ -25,16 +25,8 @@ const itemsPerPage = ref<number>(2);
 let modal: Modal | undefined;
 
 // Methods
-// const saveBook = () => {
-//   modalTitle.value === 'Add Book' ? addBook() : editBook();
-// };
-
 const saveBook = () => {
-  if (modalTitle.value === "Add Book") {
-    addBook();
-  } else if (modalTitle.value === "Edit Book") {
-    editBook();
-  }
+  modalTitle.value === 'Add Book' ? addBook() : editBook();
 };
 
 const updatePage = (page: number) => {
@@ -112,7 +104,7 @@ const showToast = (message: string, options: object) => {
   });
 };
 
-const deleteBook = async (id: number, name: string) => {
+const deleteBook = async (id: string, name: string) => {
   try {
     await bookStore.deleteTheBook(id);
 

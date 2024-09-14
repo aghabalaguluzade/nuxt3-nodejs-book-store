@@ -1,24 +1,23 @@
 export interface Book {
-   book: any;
-   _id?: number;
+   _id?: string;
    name: string;
    author: string;
    description: string;
    page?: number | null;
    rating?: number;
-   createdAt?: number;
-   updatedAt?: number;
-   editedBookId?: number | null;
+   createdAt?: string;
+   updatedAt?: string;
+   editedBookId?: string | null;
 }
 
 export interface User {
-   _id?: number;
+   _id?: string;
    username?: string;
    email: string;
    password: string;
    admin?: boolean;
-   createdAt?: number;
-   updatedAt?: number;
+   createdAt?: string;
+   updatedAt?: string;
 }
 
 export interface ErrorResponse {
@@ -34,7 +33,7 @@ export interface CarouselItem {
 }
 
 export interface Comment {
-   _id?: number;
+   _id?: string;
    content: string;
    book: number;
    postedBy: User;
@@ -43,10 +42,21 @@ export interface Comment {
 }
 
 export interface ApiResponse<T> {
-   comments: T[];
+   message: string;
+   ratings?: T[];
+   comments?: T[];
 }
 
 export interface commentsForBook {
    comment: Comment;
    postedBy: User;
+}
+
+export interface Rating {
+   _id: string;
+   book: number;
+   ratedBy: User;
+   rate: number;
+   createdAt: string;
+   updatedAt: string;
 }
