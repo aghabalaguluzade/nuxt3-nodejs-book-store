@@ -5,8 +5,9 @@ export interface Book {
    description: string;
    page?: number | null;
    rating?: number;
-   createdAt?: string;
-   updatedAt?: string;
+   ratings?: Rating[];
+   createdAt?: string | null;
+   updatedAt?: string | null;
    editedBookId?: string | null;
 }
 
@@ -47,16 +48,11 @@ export interface ApiResponse<T> {
    comments?: T[];
 }
 
-export interface commentsForBook {
-   comment: Comment;
-   postedBy: User;
-}
-
 export interface Rating {
    _id: string;
    book: number;
    ratedBy: User;
    rate: number;
-   createdAt: string;
-   updatedAt: string;
+   createdAt?: string;
+   updatedAt?: string;
 }

@@ -1,24 +1,36 @@
 import { defineStore } from 'pinia'
-import type { ApiResponse, Comment, commentsForBook } from '~/types';
+import type { ApiResponse, Comment } from '~/types';
 
 export const useCommentsStore = defineStore({
   id: 'CommentsStore',
   state: () => ({
     comments: [] as Comment[],
-    commentsForBook: [] as commentsForBook[],
-    commentsByUser: [],
+    commentsForBook: [] as Comment[],
+    commentsByUser: [] as Comment[],
   }),
   actions: {
+    async fetchComments() {
+      try {
+        const config = useRuntimeConfig();
+        const response = await $fetch<ApiResponse<Comment>>(`${config.public.apiBaseUrl}/comments`);
+
+        this.comments = response.comments ?? [];
+      } catch (error) {
+        console.error('Error at fetching comments', error);
+      }
+    },
     async addNewComment(newComment: Comment) {
       try {
         const config = useRuntimeConfig();
         const { $api } = useNuxtApp();
-        const response = await $api(`${config.public.apiBaseUrl}/comments`, {
+        await $api<Comment>(`${config.public.apiBaseUrl}/comments`, {
           method: 'POST',
           body: JSON.stringify(newComment),
         });
 
-        this.comments.push(response.comment);
+        await this.fetchComments();
+
+        // this.comments.push(response.comment);
 
       } catch (error: any) {
         throw error.data;
@@ -47,7 +59,7 @@ export const useCommentsStore = defineStore({
     async fetchCommentsForBook(bookId: number) {
       try {
         const config = useRuntimeConfig();
-        const response = await $fetch<ApiResponse<commentsForBook>>(`${config.public.apiBaseUrl}/comments/book/${bookId}`);
+        const response = await $fetch<ApiResponse<Comment>>(`${config.public.apiBaseUrl}/comments/book/${bookId}`);
 
         this.commentsForBook = response.comments ?? [];
       } catch (error: any) {

@@ -20,12 +20,6 @@ const bookSchema = new Schema({
       required: true,
       min: 1
    },
-   rating: {
-      type: Number,
-      required: false,
-      min: 0,
-      max: 10
-   },
    uploader: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

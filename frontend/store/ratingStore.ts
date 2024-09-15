@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { ApiResponse, Rating } from '~/types';
+import { useBookStore } from './bookStore';
 
 export const useRatingStore = defineStore({
   id: 'RatingStore',
@@ -17,12 +18,7 @@ export const useRatingStore = defineStore({
           body: JSON.stringify(newRate),
         });
 
-        const index = this.ratingsForBook.findIndex(r => r.ratedBy._id === newRate.ratedBy && r.book === newRate.book);
-        if (index !== -1) {
-          this.ratingsForBook[index] = response.rate;
-        } else {
-          this.ratingsForBook.push(response.rate);
-        }
+        this.ratings.push(response.rate);
         
       } catch (error: any) {
         console.error('Error adding rate:', error);
@@ -32,9 +28,19 @@ export const useRatingStore = defineStore({
     async fetchRatingsForBook(bookId: string) {
       try {
         const config = useRuntimeConfig();
+        const bookStore = useBookStore();
         const response = await $fetch<ApiResponse<Rating>>(`${config.public.apiBaseUrl}/ratings/book/${bookId}`);
-              
+        
         this.ratingsForBook = response.ratings ?? [];
+
+        const bookIndex = bookStore.books.findIndex((book) => book._id === bookId);
+
+        if(bookIndex !== -1) {
+          bookStore.books[bookIndex].ratings = response.ratings ?? [];
+        }else {
+          console.warn('Book with id ' + bookId + 'not found');
+        }
+        
       } catch (error: any) {
         throw error.data;
       }

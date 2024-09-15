@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { Book } from '~/types'
 import { useAuthStore } from './authStore';
+import { useRatingStore } from './ratingStore';
 
 export const useBookStore = defineStore({
   id: 'BookStore',
@@ -12,7 +13,32 @@ export const useBookStore = defineStore({
   getters: {
     selectedBook: (state) => {
       return (id: string): Book | undefined => state.books.find((book) => book._id === id);
+    },
+    latest5Books: (state) => {
+      return state.books
+        .filter(book => book.createdAt)
+        .sort((a, b) => {
+          const dateA = new Date(a.createdAt!);
+          const dateB = new Date(b.createdAt!);
+          return dateB.getTime() - dateA.getTime();
+        })
+        .slice(0, 5);
+    },
+    rated5Books: (state) => {
+      const sortedBooks = state.books.sort((a, b) => {
+        const averageRatingA =
+          (a.ratings?.reduce((sum, rating) => sum + rating.rate, 0) ?? 0) / 
+          (a.ratings?.length ?? 1);
+        const averageRatingB =
+          (b.ratings?.reduce((sum, rating) => sum + rating.rate, 0) ?? 0) / 
+          (b.ratings?.length ?? 1);
+    
+        return averageRatingB - averageRatingA;
+      });
+    
+      return sortedBooks.slice(0, 5);
     }
+    
   },
   actions: {
     async getBooks(fresh = false) {
@@ -23,20 +49,33 @@ export const useBookStore = defineStore({
       this.isLoading = true;
 
       try {
-        const { data, error } = await useFetch<Book[]>('/api/books');
+        const config = useRuntimeConfig();
+        const response = await $fetch<Book[]>(`${config.public.apiBaseUrl}/books`); 
 
-        if (error.value) {
-          console.error('Error fetching books:', error.value.message);
-          this.isLoading = false;
-        } else {
-          this.books = data.value || [];
-          this.isLoading = false;
-        }
+        this.books = response ?? [];
+        await this.fetchRatingsForBooks();
+        this.isLoading = false;
+
       } catch (error) {
         console.error('Error fetching books:', error);
       } finally {
         this.isLoading = false;
       }
+    },
+    async fetchRatingsForBooks() {
+      const ratingStore = useRatingStore();
+
+      await Promise.all(
+        this.books.map(async (book) => {
+          try {
+            await ratingStore.fetchRatingsForBook(book._id);
+
+            book.ratings = ratingStore.ratingsForBook;
+          } catch (error) {
+            console.error('Error at fetchRatingsForBook', error);
+          }
+        })
+      );
     },
     async addBook(newBook: Book) {
       const authStore = useAuthStore();
@@ -105,7 +144,7 @@ export const useBookStore = defineStore({
           }
         });
 
-        const updatedBookData = response.book;
+        const updatedBookData = response.book ?? [];
 
         const bookIndex = this.books.findIndex((book) => book._id === bookId);
         if (bookIndex !== -1) {

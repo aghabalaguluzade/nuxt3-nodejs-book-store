@@ -26,7 +26,7 @@ const paginatedBooks = computed(() => {
   <div class="container">
     <section-header 
       title="Books"
-      text="We declare long prop names using camelCase because this avoids"
+      text="These are the books"
     />
     <book-list :books="paginatedBooks" />
     <pagination-widget 

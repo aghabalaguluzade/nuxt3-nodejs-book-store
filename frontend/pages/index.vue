@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import CarouselWidget from "~/components/widgets/CarouselWidget.vue";
 import { useBookStore } from "~/store/bookStore";
+import { useCommentsStore } from "~/store/commentsStore";
 import hero_1 from "/public/images/hero_1.jpg";
 import hero_2 from "/public/images/hero_2.jpg";
 import hero_3 from "/public/images/hero_3.jpg";
@@ -8,6 +9,10 @@ import type { Book, CarouselItem } from "~/types";
 
 // Stores and Utilities
 const bookStore = useBookStore();
+const commentsStore = useCommentsStore();
+
+console.log(bookStore.books, 'book store index');
+
 
 // Carousel
 const carouselItems: CarouselItem[] = [
@@ -62,14 +67,44 @@ const filteredBooks = computed<Book[]>(() => {
     return copiedBooks
       .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
       .slice(0, 5);
+    // return bookStore.latest5Books;
   } else if (selectedFilter.value === "best") {
     return copiedBooks
       .sort((a, b) => (b.rating || 0) - (a.rating || 0))
       .slice(0, 5);
+    // return bookStore.rated5Books;
   }
 
   return [];
 });
+
+console.log(bookStore.rated5Books, 'rated5Books');
+
+
+const prepared5Comments = computed(() => {
+  const latest5Comments = commentsStore.comments
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
+
+  return latest5Comments.map((comment) => {
+    const correspondingBook = bookStore.books.find(
+      (book) => book._id === comment.book
+    );
+
+    if (correspondingBook) {
+      return {
+        ...comment,
+        name: correspondingBook.name,
+      };
+    }
+
+    return comment;
+  });
+});
+
+// const rate = computed(() => {
+//   const rates = bookStore.booksratings.map(rating => rating.rate);
+// });
 </script>
 
 <template>
@@ -81,7 +116,7 @@ const filteredBooks = computed<Book[]>(() => {
       <div class="container">
         <SectionHeader
           title="Featured Books"
-          text="We declare long prop names using camelCase because this avoids"
+          text="These are the featured books"
         />
         <div class="row">
           <div class="col-md-4">
@@ -136,7 +171,9 @@ const filteredBooks = computed<Book[]>(() => {
                   <div class="accordion-body">
                     <div class="row">
                       <div class="col-md-4">
-                        <img src="/images/b1.jpg" class="img-fluid" />
+                        <NuxtLink :to="`books/${book._id}`">
+                          <img src="/images/b1.jpg" class="img-fluid" />
+                        </NuxtLink>
                       </div>
                       <div
                         class="col-md-8 d-flex flex-column justify-content-center"
@@ -152,6 +189,49 @@ const filteredBooks = computed<Book[]>(() => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="py-5" style="background-color: #f5f6f9">
+      <div class="container">
+        <SectionHeader
+          title="Latest Comments"
+          text="These are the latest comments"
+        />
+
+        <div class="row d-flex justify-content-center">
+          <div
+            class="col-md-6"
+            v-for="comment in prepared5Comments"
+            :key="comment._id"
+          >
+            <div class="card mb-3">
+              <div class="card-body">
+                <div class="d-flex flex-start align-items-center">
+                  <img
+                    class="rounded-circle shadow-1-strong me-3"
+                    src="../public/images/c1.jpg"
+                    alt="avatar"
+                    width="60"
+                    height="60"
+                  />
+                  <div>
+                    <h6 class="fw-bold text-primary mb-1">
+                      {{ comment.name }}
+                    </h6>
+                    <p class="text-muted small mb-0">
+                      {{ comment.postedBy.username }} -
+                      {{ $formatDate(comment.createdAt) }}
+                    </p>
+                  </div>
+                </div>
+
+                <p class="mt-3 mb-4 pb-2">
+                  {{ comment.content }}
+                </p>
               </div>
             </div>
           </div>

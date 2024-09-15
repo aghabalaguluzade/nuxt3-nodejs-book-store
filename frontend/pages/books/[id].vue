@@ -20,7 +20,7 @@ const book = ref<Book>({
   updatedAt: null,
 });
 const loading = ref<boolean>(true);
-const commentContent = ref<string>("");
+const commentContent = ref<string | null>("");
 const userRate = ref<number | null>(null);
 
 // Methods
@@ -80,7 +80,7 @@ const averageRating = computed(() => {
   if(ratingStore.ratingsForBook.length > 0) {
     const totalRating = ratingStore.ratingsForBook.reduce((sum: any, rating: { rate: any; }) => sum + rating.rate, 0);
 
-    return (totalRating / ratingStore.ratingsForBook.length).toFixed(2);
+    return (totalRating / ratingStore.ratingsForBook.length).toFixed(1);
   }
 });
 
@@ -123,7 +123,6 @@ const commentsForBook = computed(() => commentsStore.commentsForBook);
 onMounted(() => {
   selectedBook();
   commentsStore.fetchCommentsForBook(route.params.id);
-  ratingStore.fetchRatingsForBook(route.params.id);
 });
 
 // Watcher
@@ -176,7 +175,7 @@ watch(commentsForBook, (newComments: any) => {
             </div>
             <div class="row border-bottom pb-2">
               <div class="col-lg-6"><strong>Upload Date</strong></div>
-              <div class="col-lg-6">{{ book.updatedAt }}</div>
+              <div class="col-lg-6">{{ $formatDate(book.updatedAt) }}</div>
             </div>
           </div>
         </div>
@@ -263,27 +262,32 @@ watch(commentsForBook, (newComments: any) => {
               v-for="comment in commentsForBook"
               :key="comment._id"
             >
-              <div class="card-body" :id="`comment-${comment._id}`">
-                <p>
+            <div class="card-body" :id="`comment-${comment._id}`">
+              <div class="d-flex align-items-center justify-content-between">
+                <p class="comment-content mb-0">
                   {{ comment.content }}
                 </p>
-
-                <div class="d-flex justify-content-between">
-                  <div class="d-flex flex-row align-items-center">
-                    <p class="small mb-0 ms-2">
-                      {{ comment.postedBy.username }}
-                    </p>
-                  </div>
-                  <div
-                    class="d-flex flex-row align-items-center"
-                    style="gap: 10px"
-                  >
-                    <p class="small text-muted mb-0">Upvote?</p>
-                    <font-awesome :icon="['far', 'thumbs-up']" />
-                    <p class="small text-muted mb-0">3</p>
-                  </div>
+                <p class="comment-date mb-0 text-muted">
+                  {{ $formatDate(comment.createdAt) }}
+                </p>
+              </div>
+          
+              <div class="d-flex justify-content-between mt-3">
+                <div class="d-flex flex-row align-items-center">
+                  <p class="small mb-0 ms-2">
+                    {{ comment.postedBy.username }}
+                  </p>
+                </div>
+                <div
+                  class="d-flex flex-row align-items-center"
+                  style="gap: 10px"
+                >
+                  <p class="small text-muted mb-0">Upvote?</p>
+                  <font-awesome :icon="['far', 'thumbs-up']" />
+                  <p class="small text-muted mb-0">3</p>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -310,4 +314,20 @@ watch(commentsForBook, (newComments: any) => {
   border-radius: 10px;
   padding: 20px;
 }
+card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-date {
+  flex-shrink: 0;
+}
 </style>
+
+function useRoute() {
+  throw new Error("Function not implemented.");
+}

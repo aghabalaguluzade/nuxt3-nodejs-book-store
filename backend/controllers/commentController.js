@@ -1,6 +1,20 @@
 import { isValidObjectId } from '../utils/index.js';
 import Comment from '../models/Comment.js';
 
+const getAllComments = async (req, res) => {
+   try {
+      const comments = await Comment.find().populate({
+         path: 'postedBy',
+         select: 'username'
+      });
+
+      res.status(200).json({ message: 'Comments fetched', comments });
+   } catch (error) {
+      console.error('Error at getAllComments', error);
+      return res.status(500).json({ error: 'Internal Server error' });
+   }
+};
+
 const store = async (req, res) => {
    try {
       const { bookId, content, userId } = req.body;
@@ -77,6 +91,7 @@ const update = async(req, res) => {
 };
 
 export {
+   getAllComments,
    store,
    getCommentsForBook,
    getCommentsByUser,
