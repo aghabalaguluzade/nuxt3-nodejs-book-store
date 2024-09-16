@@ -31,7 +31,7 @@ const selectedBook = () => {
     book.value = bookData;
     loading.value = false;
   } else {
-    console.error('Book not found');
+    console.error("Book not found");
   }
 };
 
@@ -50,7 +50,6 @@ const addComment = async () => {
     await commentsStore.fetchCommentsForBook(route.params.id);
 
     commentContent.value = null;
-
   } catch (error) {
     console.log(error);
   }
@@ -65,7 +64,7 @@ const addRate = async () => {
     await ratingStore.addNewRate({
       bookId,
       userId,
-      rate
+      rate,
     });
 
     userRate.value = null;
@@ -76,24 +75,53 @@ const addRate = async () => {
   }
 };
 
+const upvote = async (commentId: string) => {
+  try {
+    await commentsStore.upvoteComment(commentId);
+
+    await commentsStore.fetchCommentsForBook(route.params.id);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const downvote = async (commentId: string) => {
+  try {
+    await commentsStore.downvoteComment(commentId);
+
+    await commentsStore.fetchCommentsForBook(route.params.id);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 const averageRating = computed(() => {
-  if(ratingStore.ratingsForBook.length > 0) {
-    const totalRating = ratingStore.ratingsForBook.reduce((sum: any, rating: { rate: any; }) => sum + rating.rate, 0);
+  if (ratingStore.ratingsForBook.length > 0) {
+    const totalRating = ratingStore.ratingsForBook.reduce(
+      (sum: any, rating: { rate: any }) => sum + rating.rate,
+      0
+    );
 
     return (totalRating / ratingStore.ratingsForBook.length).toFixed(1);
   }
 });
 
-const ratingCount = computed(() => ratingStore.ratingsForBook ? ratingStore.ratingsForBook.length : 0);
+const ratingCount = computed(() =>
+  ratingStore.ratingsForBook ? ratingStore.ratingsForBook.length : 0
+);
 
 const isUserAlreadyRated = computed(() => {
-  if(authStore.user) return false;
+  if (authStore.user) return false;
 
-  return ratingStore.ratingsForBook.some((rating) => rating.ratedBy._id == authStore.user);
+  return ratingStore.ratingsForBook.some(
+    (rating) => rating.ratedBy._id == authStore.user
+  );
 });
 
 const userRating = computed(() => {
-  const userRatingObject = ratingStore.ratingsForBook.find((rating) => rating.ratedBy._id === authStore.user) 
+  const userRatingObject = ratingStore.ratingsForBook.find(
+    (rating) => rating.ratedBy._id === authStore.user
+  );
 
   return userRatingObject ? userRatingObject : null;
 });
@@ -104,7 +132,7 @@ const scrollToComment = () => {
     if (commentId) {
       const element = document.getElementById(`comment-${commentId}`);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
       } else {
         console.error(`Element with id comment-${commentId} not found`);
       }
@@ -123,14 +151,19 @@ const commentsForBook = computed(() => commentsStore.commentsForBook);
 onMounted(() => {
   selectedBook();
   commentsStore.fetchCommentsForBook(route.params.id);
+  ratingStore.fetchRatingsForBook(route.params.id);
 });
 
 // Watcher
-watch(commentsForBook, (newComments: any) => {
-  if (newComments.length) {
-    scrollToComment();
-  }
-}, { immediate: true });
+watch(
+  commentsForBook,
+  (newComments: any) => {
+    if (newComments.length) {
+      scrollToComment();
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -262,32 +295,85 @@ watch(commentsForBook, (newComments: any) => {
               v-for="comment in commentsForBook"
               :key="comment._id"
             >
-            <div class="card-body" :id="`comment-${comment._id}`">
-              <div class="d-flex align-items-center justify-content-between">
-                <p class="comment-content mb-0">
-                  {{ comment.content }}
-                </p>
-                <p class="comment-date mb-0 text-muted">
-                  {{ $formatDate(comment.createdAt) }}
-                </p>
-              </div>
-          
-              <div class="d-flex justify-content-between mt-3">
-                <div class="d-flex flex-row align-items-center">
-                  <p class="small mb-0 ms-2">
-                    {{ comment.postedBy.username }}
+              <div class="card-body" :id="`comment-${comment._id}`">
+                <div class="d-flex align-items-center justify-content-between">
+                  <p class="comment-content mb-0">
+                    {{ comment.content }}
+                  </p>
+                  <p class="comment-date mb-0 text-muted">
+                    {{ $formatDate(comment.createdAt) }}
                   </p>
                 </div>
-                <div
-                  class="d-flex flex-row align-items-center"
-                  style="gap: 10px"
-                >
-                  <p class="small text-muted mb-0">Upvote?</p>
-                  <font-awesome :icon="['far', 'thumbs-up']" />
-                  <p class="small text-muted mb-0">3</p>
+
+                <div class="d-flex justify-content-between mt-3">
+                  <div class="d-flex flex-row align-items-center">
+                    <p class="small mb-0 ms-2">
+                      {{ comment.postedBy.username }}
+                    </p>
+                  </div>
+                  <div
+                    class="d-flex flex-row align-items-center"
+                    style="gap: 10px"
+                  >
+                    <div
+                      class="d-flex flex-row align-items-center"
+                      style="gap: 10px"
+                      v-if="!authStore.$state.user"
+                    >
+                      <p class="small mb-0">Login for upvote!</p>
+                      <font-awesome
+                        :icon="['fas', 'thumbs-up']"
+                        style="color: var(--secondary-color)"
+                      />
+                    </div>
+                    <div
+                      class="d-flex flex-row align-items-center"
+                      style="gap: 10px; cursor: pointer"
+                      v-else-if="
+                        !comment.upvotes.includes(authStore.$state.user._id) &&
+                        comment.postedBy._id !== authStore.$state.user._id
+                      "
+                      @click="upvote(comment._id)"
+                    >
+                      <p class="small mb-0">Upvote?</p>
+                      <font-awesome :icon="['far', 'thumbs-up']" />
+                    </div>
+                    <div
+                      class="d-flex flex-row align-items-center"
+                      style="gap: 10px; cursor: pointer"
+                      v-else-if="
+                        comment.upvotes.includes(authStore.$state.user._id) &&
+                        comment.postedBy._id !== authStore.$state.user._id
+                      "
+                      @click="downvote(comment._id)"
+                    >
+                      <p class="small mb-0">Upvoted</p>
+                      <font-awesome
+                        :icon="['fas', 'thumbs-up']"
+                        style="color: var(--secondary-color)"
+                      />
+                    </div>
+
+                    <div
+                      v-else
+                      class="d-flex flex-row align-items-center"
+                      style="gap: 10px"
+                    >
+                      <p class="small mb-0">
+                        You can't upvote for your comment
+                      </p>
+                      <font-awesome
+                        :icon="['fas', 'thumbs-up']"
+                        style="color: var(--secondary-color)"
+                      />
+                    </div>
+
+                    <p class="small text-muted mb-0">
+                      {{ comment.upvotes.length }}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
             </div>
           </div>
         </div>
@@ -328,6 +414,4 @@ card-body {
 }
 </style>
 
-function useRoute() {
-  throw new Error("Function not implemented.");
-}
+function useRoute() { throw new Error("Function not implemented."); }

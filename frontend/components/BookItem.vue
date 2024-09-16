@@ -6,11 +6,8 @@ const props = defineProps({
   },
 });
 
-console.log(props.book);
-
-
 const averageRating = computed(() => {
-  const ratings = props.book.ratings || []; // Default to an empty array if undefined
+  const ratings = props.book.ratings || [];
   if (ratings.length > 0) {
     const totalRating = ratings.reduce(
       (sum, rating) => sum + rating.rate,

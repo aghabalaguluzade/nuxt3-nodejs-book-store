@@ -38,6 +38,7 @@ export interface Comment {
    content: string;
    book: number;
    postedBy: User;
+   upvotes: User;
    createdAt?: string;
    updatedAt?: string;
 }

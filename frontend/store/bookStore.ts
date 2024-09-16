@@ -53,8 +53,8 @@ export const useBookStore = defineStore({
         const response = await $fetch<Book[]>(`${config.public.apiBaseUrl}/books`); 
 
         this.books = response ?? [];
+        
         await this.fetchRatingsForBooks();
-        this.isLoading = false;
 
       } catch (error) {
         console.error('Error fetching books:', error);

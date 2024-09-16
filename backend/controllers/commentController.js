@@ -90,10 +90,48 @@ const update = async(req, res) => {
    }
 };
 
+const upvoteComment = async (req, res) => {
+   try {
+      const commentId = req.params.id;
+      const userId =  req.user._id;
+
+      const comment = await Comment.findById(commentId);
+
+      comment.upvotes.push(userId);
+
+      await comment.save();
+
+      return res.status(200).json({ message: 'Upvoted successfully', comment });
+
+   } catch (error) {
+      return res.status(500).json({ error: 'Internal Server error' });
+   }
+};
+
+const downvoteComment = async (req, res) => {
+   try {
+      const commentId = req.params.id;
+      const userId = req.user._id;
+
+      const comment = await Comment.findById(commentId);
+
+      comment.upvotes = comment.upvotes.filter((upvote) => upvote.toString() !== userId.toString());
+
+      await comment.save();
+
+      return res.status(200).json({ message: 'Upvoted successfully', comment });
+   }catch (error) {
+      console.error('Error at upvoteComment', error);
+      return res.status(500).json({ error: 'Internal Server error' });
+   }
+};
+
 export {
    getAllComments,
    store,
    getCommentsForBook,
    getCommentsByUser,
-   update
+   update,
+   upvoteComment,
+   downvoteComment,
 }

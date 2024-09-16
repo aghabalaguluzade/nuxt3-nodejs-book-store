@@ -12,6 +12,14 @@ router
   .route('/:id')
   .put(authMiddleware.authenticateUser, commentController.update);
 
+router
+  .route('/:id/upvote')
+  .post(authMiddleware.authenticateUser, commentController.upvoteComment);
+
+router
+  .route('/:id/downvote')
+  .post(authMiddleware.authenticateUser, commentController.downvoteComment);
+
 router.route('/book/:id').get(commentController.getCommentsForBook);
 
 router

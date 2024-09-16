@@ -11,9 +11,6 @@ import type { Book, CarouselItem } from "~/types";
 const bookStore = useBookStore();
 const commentsStore = useCommentsStore();
 
-console.log(bookStore.books, 'book store index');
-
-
 // Carousel
 const carouselItems: CarouselItem[] = [
   {
@@ -64,22 +61,19 @@ const filteredBooks = computed<Book[]>(() => {
   }
 
   if (selectedFilter.value === "latest") {
-    return copiedBooks
-      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-      .slice(0, 5);
-    // return bookStore.latest5Books;
+    // return copiedBooks
+    //   .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    //   .slice(0, 5);
+    return bookStore.latest5Books;
   } else if (selectedFilter.value === "best") {
-    return copiedBooks
-      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-      .slice(0, 5);
-    // return bookStore.rated5Books;
+    // return copiedBooks
+    //   .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    //   .slice(0, 5);
+    return bookStore.rated5Books;
   }
 
   return [];
 });
-
-console.log(bookStore.rated5Books, 'rated5Books');
-
 
 const prepared5Comments = computed(() => {
   const latest5Comments = commentsStore.comments
@@ -101,10 +95,6 @@ const prepared5Comments = computed(() => {
     return comment;
   });
 });
-
-// const rate = computed(() => {
-//   const rates = bookStore.booksratings.map(rating => rating.rate);
-// });
 </script>
 
 <template>
@@ -238,11 +228,6 @@ const prepared5Comments = computed(() => {
         </div>
       </div>
     </section>
-    <!-- <book-categories />
-      <book-about />
-      <book-customers />
-      <book-blog />
-      <book-contact-us /> -->
   </div>
 </template>
 

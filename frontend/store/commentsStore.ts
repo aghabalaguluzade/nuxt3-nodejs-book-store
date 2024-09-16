@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { ApiResponse, Comment } from '~/types';
+import { useAuthStore } from './authStore';
 
 export const useCommentsStore = defineStore({
   id: 'CommentsStore',
@@ -73,6 +74,45 @@ export const useCommentsStore = defineStore({
         const response = await $api(`${config.public.apiBaseUrl}/comments/user/${userId}`);        
 
         this.commentsByUser = response.comments;
+
+      } catch (error: any) {
+        throw error.data;
+      }
+    },
+    async upvoteComment(commentId: string) {
+      try {
+        const config = useRuntimeConfig();
+        const { $api } = useNuxtApp();
+        const response = await $api(`${config.public.apiBaseUrl}/comments/${commentId}/upvote`, {
+          method: 'POST'
+        });
+
+        const updateComment = response.comment;
+
+        const commentIndex = this.comments.findIndex((comment) => comment._id === updateComment._id);
+
+        if(commentIndex !== -1) {
+          this.comments[commentIndex] = updateComment;
+        }
+      } catch (error: any) {
+        throw error.data;
+      }
+    },
+    async downvoteComment(commentId: string) {
+      try {
+        const config = useRuntimeConfig();
+        const { $api } = useNuxtApp();
+        const  response = await $api(`${config.public.apiBaseUrl}/comments/${commentId}/downvote`, {
+          method: 'POST'
+        });
+        
+        const updateComment = response.comment;
+
+        const commentIndex = this.comments.findIndex((comment) => comment._id === updateComment._id);
+
+        if(commentIndex !== -1) {
+          this.comments[commentIndex] = updateComment;
+        }
 
       } catch (error: any) {
         throw error.data;
