@@ -10,7 +10,8 @@ router
 
 router
   .route('/:id')
-  .put(authMiddleware.authenticateUser, commentController.update);
+  .put(authMiddleware.authenticateUser, commentController.update)
+  .delete(authMiddleware.authenticateUser, commentController.destroy);
 
 router
   .route('/:id/upvote')

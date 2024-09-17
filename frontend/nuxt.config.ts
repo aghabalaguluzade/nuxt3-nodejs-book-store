@@ -4,7 +4,8 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   runtimeConfig: {
     public: {
-      apiBaseUrl: process.env.API_BASE_URL
+      apiBaseUrl: process.env.API_BASE_URL,
+      backendImagesUrl: process.env.API_IMAGES_URL
     }
   },
   nitro: {

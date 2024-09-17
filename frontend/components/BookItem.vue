@@ -1,4 +1,6 @@
 <script setup>
+const { $backendImagesUrl } = useNuxtApp();
+
 const props = defineProps({
   book: {
     type: Object,
@@ -43,9 +45,10 @@ const truncatedText = computed(() => {
   <NuxtLink :to="`/books/${book._id}`">
     <div class="card border-0 shadow position-relative">
       <img
-        src="../public/images//b1.jpg"
+        :src="`${$backendImagesUrl}/${book.image}`"
         class="card-img-top"
         alt="card-img-top"
+        style="height: 300px; object-fit: fill"
       />
       <div class="card-body">
         <div class="auth-box">

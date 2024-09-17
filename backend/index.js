@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import path from 'path';
+import { __dirname } from './utils/pathUtils.js';
 import connectDatabase from "./config/db.js";
 import bookRoute from './routes/bookRoute.js';
 import authRoute from './routes/authRoute.js';
@@ -18,6 +20,10 @@ const corsPortOptions = {
 // Middleware configuration
 app.use(cors(corsPortOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Upload configuration
+app.use(express.static("public"));
 
 // Routes configuration
 app.use('/api/v1/books', bookRoute);

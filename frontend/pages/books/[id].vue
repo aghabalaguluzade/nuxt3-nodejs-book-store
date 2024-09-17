@@ -4,6 +4,8 @@ import { useAuthStore } from "~/store/authStore";
 import { useCommentsStore } from "~/store/commentsStore";
 import { useRatingStore } from "~/store/ratingStore";
 import type { Book } from "~/types";
+import { useRoute, useRouter, useHead } from "#app";
+import { computed, nextTick, ref, watch } from "vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -11,12 +13,14 @@ const storeBooks = useBookStore();
 const authStore = useAuthStore();
 const commentsStore = useCommentsStore();
 const ratingStore = useRatingStore();
+const { $backendImagesUrl } = useNuxtApp();
 
 const book = ref<Book>({
   name: "",
   author: "",
   description: "",
   page: null,
+  image: "",
   updatedAt: null,
 });
 const loading = ref<boolean>(true);
@@ -24,17 +28,6 @@ const commentContent = ref<string | null>("");
 const userRate = ref<number | null>(null);
 
 // Methods
-const selectedBook = () => {
-  const bookId = route.params.id as string;
-  const bookData = storeBooks.selectedBook(bookId);
-  if (bookData) {
-    book.value = bookData;
-    loading.value = false;
-  } else {
-    console.error("Book not found");
-  }
-};
-
 const addComment = async () => {
   try {
     const bookId = route.params.id as string;
@@ -47,7 +40,7 @@ const addComment = async () => {
       userId,
     });
 
-    await commentsStore.fetchCommentsForBook(route.params.id);
+    await commentsStore.fetchCommentsForBook(route.params.id as string);
 
     commentContent.value = null;
   } catch (error) {
@@ -79,7 +72,7 @@ const upvote = async (commentId: string) => {
   try {
     await commentsStore.upvoteComment(commentId);
 
-    await commentsStore.fetchCommentsForBook(route.params.id);
+    await commentsStore.fetchCommentsForBook(route.params.id as string);
   } catch (error) {
     console.error(error);
   }
@@ -89,9 +82,34 @@ const downvote = async (commentId: string) => {
   try {
     await commentsStore.downvoteComment(commentId);
 
-    await commentsStore.fetchCommentsForBook(route.params.id);
+    await commentsStore.fetchCommentsForBook(route.params.id as string);
   } catch (error) {
     console.error(error);
+  }
+};
+
+const selectBook = async () => {
+  const bookId = route.params.id as string;
+  const bookData = storeBooks.selectedBook(bookId);
+  
+  // book.value = bookData;
+  // loading.value = false;
+
+  if (bookData) {
+    book.value = bookData;
+    loading.value = false;
+  } else {
+    try {
+      await storeBooks.getBooks();
+      const updatedBookData = storeBooks.selectedBook(bookId);
+      if (updatedBookData) {
+        book.value = updatedBookData;
+      }
+    } catch (error) {
+      console.error("Error selecting book:", error);
+    } finally {
+      loading.value = false;
+    }
   }
 };
 
@@ -149,15 +167,15 @@ const isLoggedIn = computed(() => authStore.isLoggedIn);
 const commentsForBook = computed(() => commentsStore.commentsForBook);
 
 onMounted(() => {
-  selectedBook();
-  commentsStore.fetchCommentsForBook(route.params.id);
-  ratingStore.fetchRatingsForBook(route.params.id);
+  selectBook();
+  commentsStore.fetchCommentsForBook(route.params.id as string);
+  ratingStore.fetchRatingsForBook(route.params.id as string);
 });
 
 // Watcher
 watch(
-  commentsForBook,
-  (newComments: any) => {
+  () => commentsStore.commentsForBook,
+  (newComments) => {
     if (newComments.length) {
       scrollToComment();
     }
@@ -185,7 +203,11 @@ watch(
     <div class="row">
       <div class="col-md-6">
         <div class="image-box">
-          <img class="img-fluid" src="../../public/images/b_detail.jpg" />
+          <img
+            class="img-fluid"
+            :src="`${$backendImagesUrl}/${book.image}`"
+            style="height: 338px; width: 456px; object-fit: fill"
+          />
         </div>
       </div>
       <div class="col-md-6">
@@ -412,6 +434,12 @@ card-body {
 .comment-date {
   flex-shrink: 0;
 }
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.5rem;
+  color: var(--primary-color);
+}
 </style>
-
-function useRoute() { throw new Error("Function not implemented."); }

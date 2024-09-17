@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import type { Modal } from "bootstrap";
+import { Dropzone } from "dropzone";
+import "dropzone/dist/dropzone.css";
+// import VueDropzone from 'vue3-dropzone';
 import { useToast } from "vue-toastification";
 import { useBookStore } from "~/store/bookStore";
+import { useAuthStore } from "~/store/authStore";
 import PaginationWidget from "../widgets/PaginationWidget.vue";
 import type { Book } from "~/types";
 
 // Use Nuxt App and Book Store
 const { $bootstrap } = useNuxtApp();
+const { $backendImagesUrl } = useNuxtApp();
 const toast = useToast();
 const bookStore = useBookStore();
+const authStore = useAuthStore();
 
 // Reactive state for the new book
 let newBook = reactive<Book>({
@@ -16,17 +22,20 @@ let newBook = reactive<Book>({
   author: "",
   description: "",
   page: null,
+  image: "",
   editedBookId: null,
 });
 const modalTitle = ref<string>("Add Book");
 const currentPage = ref<number>(1);
-const itemsPerPage = ref<number>(2);
+const itemsPerPage = ref<number>(10);
+const dropzoneElement = ref<HTMLDivElement | null>(null);
 
 let modal: Modal | undefined;
+let dropzone: Dropzone | null = null;
 
 // Methods
 const saveBook = () => {
-  modalTitle.value === 'Add Book' ? addBook() : editBook();
+  modalTitle.value === "Add Book" ? addBook() : editBook();
 };
 
 const updatePage = (page: number) => {
@@ -56,7 +65,20 @@ const openEditModal = (existingBook: Book) => {
 
 const addBook = async () => {
   try {
+    await new Promise((resolve, reject) => {
+      dropzone.on("complete", (file) => {
+        if (file.status === "success") {
+          resolve();
+        } else {
+          reject(new Error("File upload failed"));
+        }
+      });
+
+      dropzone.processQueue();
+    });
+
     await bookStore.addBook(newBook);
+
     currentPage.value = 1;
     modal?.hide();
     Object.assign(newBook, {
@@ -64,6 +86,7 @@ const addBook = async () => {
       author: "",
       description: "",
       page: null,
+      image: null,
       editedBookId: null,
     });
 
@@ -76,6 +99,11 @@ const addBook = async () => {
     });
   } catch (error) {
     console.log(error);
+    showToast("Failed to add book", {
+      type: "error",
+      position: "top-right",
+      timeout: 3000,
+    });
   }
 };
 
@@ -144,7 +172,47 @@ onMounted(() => {
   if (modalElement) {
     modal = new $bootstrap.Modal(modalElement);
   }
+
   bookStore.fetchBooksByUploader();
+
+  if (dropzoneElement.value) {
+    dropzone = new Dropzone(dropzoneElement.value, {
+      url: "http://localhost:5000/api/v1/books/upload",
+      thumbnailWidth: 150,
+      maxFilesize: 2, // Max file size in MB
+      dictDefaultMessage: "Drag files here or click to upload",
+      paramName: "image", // Param name should match with multer's expected field name
+      acceptedFiles: "image/*",
+      autoProcessQueue: false, // Disable automatic file uploads
+      init: function () {
+        this.on("sending", (file, xhr, formData) => {
+          xhr.setRequestHeader("Authorization", `Bearer ${authStore.token}`);
+
+          // formData.append("name", newBook.name);
+          // formData.append("author", newBook.author);
+          // formData.append("description", newBook.description);
+          // formData.append("page", newBook.page);
+        });
+
+        this.on("success", (file, response) => {
+          // Handle success
+          console.log("File uploaded successfully", response);
+          newBook.image = response.filePath;
+        });
+
+        this.on("error", (file, message) => {
+          // Handle error
+          console.error("Upload failed:", message);
+        });
+      },
+    });
+  }
+});
+
+onUnmounted(() => {
+  if (dropzone) {
+    dropzone.destroy(); // Clean up Dropzone instance when component unmounts
+  }
 });
 </script>
 
@@ -165,9 +233,9 @@ onMounted(() => {
         <table class="table">
           <thead>
             <tr>
+              <th>Img</th>
               <th>Title</th>
               <th>Author</th>
-              <th>Description</th>
               <th>Page</th>
               <th class="text-center">Edit</th>
               <th class="text-center">Delete</th>
@@ -175,13 +243,23 @@ onMounted(() => {
           </thead>
           <TransitionGroup name="list" tag="tbody">
             <tr v-for="book in paginatedBooks" :key="book._id">
-              <td>{{ book.name }}</td>
-              <td>{{ book.author }}</td>
-              <td style="max-width: 250px">
-                {{ book.description }}
+              <td class="center-align">
+                <NuxtLink :to="`/books/${book._id}`">
+                  <img
+                    :src="`${$backendImagesUrl}/${book.image}`"
+                    :alt="book.name"
+                    style="width: 50px"
+                  />
+                </NuxtLink>
               </td>
-              <td>{{ book.page }}</td>
-              <td class="text-center">
+              <td class="center-align">
+                <NuxtLink :to="`/books/${book._id}`">
+                  {{ book.name }}
+                </NuxtLink>
+              </td>
+              <td class="center-align">{{ book.author }}</td>
+              <td class="center-align">{{ book.page }}</td>
+              <td class="text-center center-align">
                 <font-awesome
                   :icon="['far', 'pen-to-square']"
                   class="text-warning"
@@ -189,7 +267,7 @@ onMounted(() => {
                   @click="openEditModal(book)"
                 />
               </td>
-              <td class="text-center">
+              <td class="text-center center-align">
                 <font-awesome
                   :icon="['fas', 'trash']"
                   class="text-danger"
@@ -281,6 +359,9 @@ onMounted(() => {
                 required
               />
             </div>
+
+            <div ref="dropzoneElement" class="my-dropzone"></div>
+
             <div class="text-end mb-4">
               <button
                 @click="modal.hide()"
@@ -301,6 +382,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.center-align {
+  vertical-align: middle;
+}
+
 .btn-outline-secondary {
   border-radius: 25px;
   height: 48px;
@@ -320,5 +405,15 @@ onMounted(() => {
 }
 .list-leave-active {
   position: absolute;
+}
+
+.my-dropzone {
+  border: 2px dashed #007bff;
+  border-radius: 5px;
+  padding: 20px;
+  width: 100%;
+  height: 200px;
+  background: #f8f9fa;
+  cursor: pointer;
 }
 </style>

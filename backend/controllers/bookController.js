@@ -1,4 +1,5 @@
 import Book from "../models/Books.js";
+import upload from "../utils/fileUpload.js";
 import { isValidObjectId, findDocumentById, checkValidationErrors } from "../utils/index.js";
 
 const index = async (req, res) => {
@@ -14,10 +15,23 @@ const index = async (req, res) => {
    }
 };
 
+const uploadFile = async (req, res) => {
+   try {
+      if (!req.file) {
+         return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const filePath = req.file.path;
+      res.status(200).json({ message: 'File uploaded successfully', filePath });
+   } catch (error) {
+      console.error('Error uploading file', error);
+      res.status(500).json({ error: 'Internal Server ERROR' });
+   }
+};
+
 const store = async (req, res) => {
    try {
-
-      const { name, author, description, page } = req.body;
+      const { name, author, description, page, image } = req.body;
       const uploader = req.user._id;
 
       const existingBook = await Book.findOne({ name, author });
@@ -26,18 +40,23 @@ const store = async (req, res) => {
          return res.status(400).json({ error: 'A book with same name and author already exist!' });
       };
 
+      // const image = req.file ? req.file.path : null;
+      console.log('Image path:', image || 'No file');
+
       const newBook = await Book.create({
          name,
          author,
          description,
          page,
-         uploader
+         uploader,
+         image
       });
 
       return res.status(201).json({
          message: 'Book created successfully',
          books: newBook
       });
+
    } catch (error) {
       // Handle validation errors
       if (error.name === 'ValidationError') {
@@ -55,8 +74,8 @@ const getBooksByUploader = async (req, res) => {
    try {
       const uploaderId = req.user._id;
 
-      const books = await Book.find({ uploader : uploaderId });
-      
+      const books = await Book.find({ uploader: uploaderId });
+
       return res.status(200).json(books);
 
    } catch (error) {
@@ -132,7 +151,7 @@ const destroy = async (req, res) => {
 
       res.status(200).json({ message: 'Book was successfully destroyed' });
    } catch (error) {
-      console.error("Error at creating book", error);
+      console.error("Error at deleting book", error);
       return res
          .status(500)
          .json({ error: 'Internal Server ERROR' });
@@ -146,5 +165,6 @@ export {
    show,
    update,
    destroy,
-   getBooksByUploader
+   getBooksByUploader,
+   uploadFile
 }

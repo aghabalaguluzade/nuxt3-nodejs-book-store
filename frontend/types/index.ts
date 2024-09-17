@@ -6,6 +6,7 @@ export interface Book {
    page?: number | null;
    rating?: number;
    ratings?: Rating[];
+   image: string;
    createdAt?: string | null;
    updatedAt?: string | null;
    editedBookId?: string | null;

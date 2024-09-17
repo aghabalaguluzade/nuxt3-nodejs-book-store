@@ -19,7 +19,11 @@ const register = async (req, res) => {
          return res.status(400).json({ error: 'The email is already exist!' });
       };
 
+      const expirationTime = 60 * 60 * 24 * 7;
+
       const newUser = await User.create(req.body);
+
+      const token = jwt.sign({ userId : newUser._id }, process.env.JWT_TOKEN_KEY, { expiresIn: expirationTime });
 
       res.status(201).json({ message: 'User created successfully', user: newUser, token });
 

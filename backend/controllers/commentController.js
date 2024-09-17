@@ -1,4 +1,4 @@
-import { isValidObjectId } from '../utils/index.js';
+import { isValidObjectId, findDocumentById } from '../utils/index.js';
 import Comment from '../models/Comment.js';
 
 const getAllComments = async (req, res) => {
@@ -42,7 +42,7 @@ const getCommentsForBook = async (req, res) => {
 
       return res
          .status(201)
-         .json({ message: 'Comments for book fetched', comments: comments });
+         .json({ message: 'Comments for book fetched', comments });
    } catch (error) {
       console.error('Error at getCommentsForBook', error);
       return res.status(500).json({ error: 'Internal Server error' });
@@ -126,6 +126,30 @@ const downvoteComment = async (req, res) => {
    }
 };
 
+const destroy = async (req, res) => {
+   
+   const { id } = req.params;
+   
+   if(isValidObjectId(id, res)) return;
+
+   try {
+
+      const comment = await findDocumentById(Comment, id, res);
+
+      if (!comment) return;
+
+      await comment.deleteOne();
+
+      res.status(200).json({ message: 'Comment was successfully destroyed' });
+
+   } catch (error) {
+      console.error("Error at deleting book", error);
+      return res
+         .status(500)
+         .json({ error: 'Internal Server ERROR' });
+   }
+};
+
 export {
    getAllComments,
    store,
@@ -134,4 +158,5 @@ export {
    update,
    upvoteComment,
    downvoteComment,
+   destroy
 }

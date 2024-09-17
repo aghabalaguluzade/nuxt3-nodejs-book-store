@@ -10,6 +10,7 @@ import type { Book, CarouselItem } from "~/types";
 // Stores and Utilities
 const bookStore = useBookStore();
 const commentsStore = useCommentsStore();
+const { $backendImagesUrl } = useNuxtApp();
 
 // Carousel
 const carouselItems: CarouselItem[] = [
@@ -61,14 +62,8 @@ const filteredBooks = computed<Book[]>(() => {
   }
 
   if (selectedFilter.value === "latest") {
-    // return copiedBooks
-    //   .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-    //   .slice(0, 5);
     return bookStore.latest5Books;
   } else if (selectedFilter.value === "best") {
-    // return copiedBooks
-    //   .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-    //   .slice(0, 5);
     return bookStore.rated5Books;
   }
 
@@ -95,6 +90,29 @@ const prepared5Comments = computed(() => {
     return comment;
   });
 });
+
+const calculateAverageRating = (ratings) => {
+  if (!Array.isArray(ratings) || ratings.length === 0) {
+    return "0.0";
+  }
+
+  const totalRating = ratings.reduce((sum, rating) => sum + rating.rate, 0);
+  return (totalRating / ratings.length).toFixed(1);
+};
+
+const averageRatings = computed(() => {
+  const books = filteredBooks.value;
+
+  if (!Array.isArray(books)) {
+    return [];
+  }
+
+  return books.map(book => ({
+    ...book,
+    averageRating: calculateAverageRating(book.ratings || [])
+  }));
+});
+
 </script>
 
 <template>
@@ -141,7 +159,7 @@ const prepared5Comments = computed(() => {
             <div class="accordion">
               <div
                 class="accordion-item"
-                v-for="(book, index) in filteredBooks"
+                v-for="(book, index) in averageRatings"
                 :key="index"
               >
                 <h2 class="accordion-header">
@@ -162,7 +180,10 @@ const prepared5Comments = computed(() => {
                     <div class="row">
                       <div class="col-md-4">
                         <NuxtLink :to="`books/${book._id}`">
-                          <img src="/images/b1.jpg" class="img-fluid" />
+                          <img
+                            :src="`${$backendImagesUrl}/${book.image}`"
+                            class="img-fluid"
+                          />
                         </NuxtLink>
                       </div>
                       <div
@@ -173,7 +194,7 @@ const prepared5Comments = computed(() => {
                           class="badge align-self-start"
                           style="background-color: var(--secondary-color)"
                         >
-                          {{ book.rating }}
+                          {{ book.averageRating }}
                         </div>
                       </div>
                     </div>

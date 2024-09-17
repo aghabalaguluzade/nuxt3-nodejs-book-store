@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import type { Book } from '~/types'
-import { useAuthStore } from './authStore';
 import { useRatingStore } from './ratingStore';
 
 export const useBookStore = defineStore({
@@ -12,7 +11,8 @@ export const useBookStore = defineStore({
   }),
   getters: {
     selectedBook: (state) => {
-      return (id: string): Book | undefined => state.books.find((book) => book._id === id);
+      // return (id: string): Book | undefined => state.books.find((book) => book._id === id);
+      return (id: string) => state.books.find((book) => book._id === id)
     },
     latest5Books: (state) => {
       return state.books
@@ -41,11 +41,7 @@ export const useBookStore = defineStore({
     
   },
   actions: {
-    async getBooks(fresh = false) {
-      if (this.books.length > 0 && !fresh) {
-        return;
-      }
-
+    async getBooks() {
       this.isLoading = true;
 
       try {
@@ -78,15 +74,13 @@ export const useBookStore = defineStore({
       );
     },
     async addBook(newBook: Book) {
-      const authStore = useAuthStore();
+      const config = useRuntimeConfig();
+      const { $api } = useNuxtApp();
+
       try {
-        const data: Book = await $fetch<Book>('/api/books/book', {
+        const data = await $api<Book>(`${config.public.apiBaseUrl}/books`, {
           method: 'POST',
-          body: JSON.stringify(newBook),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authStore.token}`
-          }
+          body: JSON.stringify(newBook)
         });
 
         this.books.push(data);
@@ -95,16 +89,12 @@ export const useBookStore = defineStore({
       }
     },
     async fetchBooksByUploader() {
+      const config = useRuntimeConfig();
+      const { $api } = useNuxtApp();
+
       try {
-        const authStore = useAuthStore();
-        const config = useRuntimeConfig();
-        // const data = await $fetch<Book[]>('/api/books/uploader');
-        const response = await $fetch<Book[]>(`${config.public.apiBaseUrl}/books/uploader`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authStore.token}`
-          },
+        const response = await $api(`${config.public.apiBaseUrl}/books/uploader`, {
+          method: 'GET'
         });
 
         this.userUploadedBooks = response || [];
@@ -114,34 +104,27 @@ export const useBookStore = defineStore({
       }
     },
     async deleteTheBook(id: string) {
-      const authStore = useAuthStore();
       const config = useRuntimeConfig();
+      const { $api } = useNuxtApp();
 
       try {
-        await $fetch(`${config.public.apiBaseUrl}/books/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authStore.token}`
-          }
+        await $api(`${config.public.apiBaseUrl}/books/${id}`, {
+          method: 'DELETE'
         });
+
         this.books = this.books.filter(book => book._id === id);
       } catch (error: any) {
         throw error.data;
       }
     },
     async editTheBook(bookId: string, book: Book) {
-      const authStore = useAuthStore();
       const config = useRuntimeConfig();
+      const { $api } = useNuxtApp();
 
       try {
-        const response = await $fetch<Book>(`${config.public.apiBaseUrl}/books/${bookId}`, {
+        const response = await $api<Book>(`${config.public.apiBaseUrl}/books/${bookId}`, {
           method: 'PUT',
           body: JSON.stringify(book),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authStore.token}`
-          }
         });
 
         const updatedBookData = response.book ?? [];
