@@ -23,6 +23,7 @@ let newBook = reactive<Book>({
   description: "",
   page: null,
   image: "",
+  premium: null,
   editedBookId: null,
 });
 const modalTitle = ref<string>("Add Book");
@@ -38,7 +39,7 @@ const saveBook = () => {
   modalTitle.value === "Add Book" ? addBook() : editBook();
 };
 
-const updatePage = (page: number) => {
+const updatePage = async (page: number) => {
   currentPage.value = page;
 };
 
@@ -49,6 +50,7 @@ const openAddModal = () => {
     author: "",
     description: "",
     page: null,
+    premium: null,
     editedBook: null,
   });
   modal?.show();
@@ -65,8 +67,8 @@ const openEditModal = (existingBook: Book) => {
 
 const addBook = async () => {
   try {
-    await new Promise((resolve, reject) => {
-      dropzone.on("complete", (file) => {
+    await new Promise<void>((resolve, reject) => {
+      dropzone?.on("complete", (file) => {
         if (file.status === "success") {
           resolve();
         } else {
@@ -74,12 +76,14 @@ const addBook = async () => {
         }
       });
 
-      dropzone.processQueue();
+      dropzone?.processQueue();
     });
 
     await bookStore.addBook(newBook);
 
     currentPage.value = 1;
+    await bookStore.fetchBooksByUploader();
+
     modal?.hide();
     Object.assign(newBook, {
       name: "",
@@ -87,10 +91,9 @@ const addBook = async () => {
       description: "",
       page: null,
       image: null,
+      premium: null,
       editedBookId: null,
     });
-
-    await bookStore.fetchBooksByUploader();
 
     showToast("New book added successfully", {
       type: "success",
@@ -135,7 +138,6 @@ const showToast = (message: string, options: object) => {
 const deleteBook = async (id: string, name: string) => {
   try {
     await bookStore.deleteTheBook(id);
-
     await bookStore.fetchBooksByUploader();
 
     showToast(`${name} deleted successfully`, {
@@ -147,13 +149,17 @@ const deleteBook = async (id: string, name: string) => {
   }
 };
 
+console.log(bookStore.userUploadedBooks);
+
 // Computed property for user books
 const userBooks = computed(() => {
-  return bookStore.userUploadedBooks.slice().sort((a: Book, b: Book) => {
-    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-    return dateB - dateA;
-  });
+  return bookStore.userUploadedBooks
+    .slice()
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt ?? 0).getTime();
+      const dateB = new Date(b.createdAt ?? 0).getTime();
+      return dateB - dateA;
+    });
 });
 
 const totalPages = computed(() => {
@@ -197,7 +203,7 @@ onMounted(() => {
         this.on("success", (file, response) => {
           // Handle success
           console.log("File uploaded successfully", response);
-          newBook.image = response.filePath;
+          newBook.image = response.filePath.replace('public/', '');
         });
 
         this.on("error", (file, message) => {
@@ -358,6 +364,15 @@ onUnmounted(() => {
                 v-model="newBook.page"
                 required
               />
+            </div>
+
+            <div class="col mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="premium" v-model="newBook.premium" id="flexCheckDefault">
+                <label class="form-check-label" for="flexCheckDefault">
+                  Premium
+                </label>
+              </div>
             </div>
 
             <div ref="dropzoneElement" class="my-dropzone"></div>

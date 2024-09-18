@@ -64,7 +64,7 @@ export const useBookStore = defineStore({
       await Promise.all(
         this.books.map(async (book) => {
           try {
-            await ratingStore.fetchRatingsForBook(book._id);
+            await ratingStore.fetchRatingsForBook(book._id as string);
 
             book.ratings = ratingStore.ratingsForBook;
           } catch (error) {

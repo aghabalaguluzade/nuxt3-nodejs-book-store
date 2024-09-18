@@ -12,12 +12,22 @@ const updatePage = (page: number) => {
   currentPage.value = page;
 };
 
+const books = computed(() => {
+  return bookStore.books
+    .slice()
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt ?? 0).getTime();
+      const dateB = new Date(b.createdAt ?? 0).getTime();
+      return dateB - dateA;
+    });
+});
+
 // Computed
 const totalPages = computed(() => Math.ceil(bookStore.books.length / itemsPerPage.value));
 const paginatedBooks = computed(() => {
   const startIndex = (currentPage.value - 1) * itemsPerPage.value;
   const endIndex = startIndex + itemsPerPage.value;
-  return bookStore.books.slice(startIndex, endIndex);
+  return books.value.slice(startIndex, endIndex);
 });
 
 </script>

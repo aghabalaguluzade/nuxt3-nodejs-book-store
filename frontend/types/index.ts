@@ -7,6 +7,7 @@ export interface Book {
    rating?: number;
    ratings?: Rating[];
    image: string;
+   premium?: boolean | null;
    createdAt?: string | null;
    updatedAt?: string | null;
    editedBookId?: string | null;
@@ -37,7 +38,7 @@ export interface CarouselItem {
 export interface Comment {
    _id?: string;
    content: string;
-   book: number;
+   book: Book;
    postedBy: User;
    upvotes: User;
    createdAt?: string;
@@ -52,7 +53,7 @@ export interface ApiResponse<T> {
 
 export interface Rating {
    _id: string;
-   book: number;
+   book: Book;
    ratedBy: User;
    rate: number;
    createdAt?: string;

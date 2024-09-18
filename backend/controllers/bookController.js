@@ -1,5 +1,7 @@
+import path from 'path';
+import fs from 'fs/promises';
+import { __dirname } from '../utils/pathUtils.js';
 import Book from "../models/Books.js";
-import upload from "../utils/fileUpload.js";
 import { isValidObjectId, findDocumentById, checkValidationErrors } from "../utils/index.js";
 
 const index = async (req, res) => {
@@ -31,7 +33,7 @@ const uploadFile = async (req, res) => {
 
 const store = async (req, res) => {
    try {
-      const { name, author, description, page, image } = req.body;
+      const { name, author, description, page, image, premium } = req.body;
       const uploader = req.user._id;
 
       const existingBook = await Book.findOne({ name, author });
@@ -49,7 +51,8 @@ const store = async (req, res) => {
          description,
          page,
          uploader,
-         image
+         image,
+         premium
       });
 
       return res.status(201).json({
@@ -110,7 +113,7 @@ const show = async (req, res) => {
 
 const update = async (req, res) => {
    const { id } = req.params;
-   const { name, author, description, page } = req.body;
+   const { name, author, description, page, premium } = req.body;
 
    if (isValidObjectId(id, res)) return;
 
@@ -123,6 +126,7 @@ const update = async (req, res) => {
       book.author = author || book.author;
       book.description = description || book.description;
       book.page = page || book.page;
+      book.premium = premium || book.premium;
 
       await book.save(book);
 
@@ -147,9 +151,14 @@ const destroy = async (req, res) => {
 
       if (!book) return;
 
+      const imagePath = book.image;
+      const fullPath = path.join(__dirname, '..', 'public', 'uploads', path.basename(imagePath));
+
+      await fs.unlink(fullPath);
       await book.deleteOne();
 
       res.status(200).json({ message: 'Book was successfully destroyed' });
+
    } catch (error) {
       console.error("Error at deleting book", error);
       return res

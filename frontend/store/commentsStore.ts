@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import type { ApiResponse, Comment } from '~/types';
-import { useAuthStore } from './authStore';
 
 export const useCommentsStore = defineStore({
   id: 'CommentsStore',

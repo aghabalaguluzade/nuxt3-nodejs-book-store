@@ -6,8 +6,10 @@ const storeBooks = useBookStore();
 const commentsStore = useCommentsStore();
 
 // Fetch the books
-storeBooks.getBooks();
-commentsStore.fetchComments();
+onMounted(() => {
+  storeBooks.getBooks();
+  commentsStore.fetchComments();
+});
 </script>
 
 <template>
